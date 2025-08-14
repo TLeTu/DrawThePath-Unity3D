@@ -23,9 +23,10 @@ public class GridMeshCombiner : MonoBehaviour
     [ContextMenu("Combine Meshes By Material")]
     public void CombineMeshesByMaterial()
     {
-        // Dictionary to group mesh instances and tags by material
-        Dictionary<Material, List<CombineInstance>> materialToMesh = new Dictionary<Material, List<CombineInstance>>();
-        Dictionary<Material, string> materialToTag = new Dictionary<Material, string>();
+        List<CombineInstance> combineList = new List<CombineInstance>();
+        Material firstMaterial = null;
+        string firstTag = "Untagged";
+        bool foundMaterial = false;
         List<GameObject> cubesToDisable = new List<GameObject>();
 
         // Iterate over all child cubes
@@ -36,33 +37,24 @@ public class GridMeshCombiner : MonoBehaviour
             if (mf == null || mr == null || mf.sharedMesh == null)
                 continue;
 
-            // For each material on the renderer
-            for (int i = 0; i < mr.sharedMaterials.Length; i++)
+            CombineInstance ci = new CombineInstance();
+            ci.mesh = mf.sharedMesh;
+            ci.subMeshIndex = 0;
+            ci.transform = child.localToWorldMatrix;
+            combineList.Add(ci);
+
+            if (!foundMaterial && mr.sharedMaterial != null)
             {
-                Material mat = mr.sharedMaterials[i];
-                if (!materialToMesh.ContainsKey(mat))
-                    materialToMesh[mat] = new List<CombineInstance>();
-
-                CombineInstance ci = new CombineInstance();
-                ci.mesh = mf.sharedMesh;
-                ci.subMeshIndex = i < mf.sharedMesh.subMeshCount ? i : 0;
-                ci.transform = child.localToWorldMatrix;
-                materialToMesh[mat].Add(ci);
-
-                // Store the tag from the first cube for this material
-                if (!materialToTag.ContainsKey(mat))
-                    materialToTag[mat] = child.tag;
+                firstMaterial = mr.sharedMaterial;
+                firstTag = child.tag;
+                foundMaterial = true;
             }
             cubesToDisable.Add(child.gameObject);
         }
 
-        // Create a combined mesh GameObject for each material
-        foreach (var kvp in materialToMesh)
+        if (combineList.Count > 0 && firstMaterial != null)
         {
-            Material mat = kvp.Key;
-            List<CombineInstance> combineList = kvp.Value;
-
-            GameObject combinedObj = new GameObject($"Combined_{mat.name}");
+            GameObject combinedObj = new GameObject($"Combined_{firstMaterial.name}");
             combinedObj.transform.SetParent(transform, false);
             combinedObj.isStatic = true;
 
@@ -74,17 +66,14 @@ public class GridMeshCombiner : MonoBehaviour
             mf.sharedMesh = combinedMesh;
 
             MeshRenderer mr = combinedObj.AddComponent<MeshRenderer>();
-            mr.sharedMaterial = mat;
+            mr.sharedMaterial = firstMaterial;
 
             // Add a MeshCollider for click/touch detection
             MeshCollider meshCol = combinedObj.AddComponent<MeshCollider>();
             meshCol.sharedMesh = combinedMesh;
 
-            // Set the tag to match the cubes' tag for this material
-            if (materialToTag.TryGetValue(mat, out string tagValue))
-            {
-                combinedObj.tag = tagValue;
-            }
+            // Set the tag to match the cubes' tag
+            combinedObj.tag = firstTag;
         }
 
         // Disable original cubes
