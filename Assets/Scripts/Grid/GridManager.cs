@@ -1,12 +1,42 @@
 using UnityEngine;
 
-public class GridController : MonoBehaviour
+public class GridManager : MonoBehaviour
 {
+    public static GridManager Instance { get; private set; }
+
     public GameObject cubePrefab;
     public int gridWidth = 5;
     public int gridHeight = 5;
+    public int[,] tileTypes = new int[,] {
+        {7, 9, 9, 9, 9, 9, 9, 4},
+        {8, 10, 10, 10, 10, 10, 10, 8},
+        {8, 10, 2, 4, 10, 3, 10, 8},
+        {8, 10, 10, 8, 10, 8, 10, 8},
+        {8, 10, 10, 6, 9, 5, 10, 8},
+        {8, 10, 10, 10, 10, 10, 10, 8},
+        {8, 10, 10, 7, 4, 10, 10, 8},
+        {6, 9, 9, 5, 6, 9, 9, 5}
+    };
+    public int walkableTileType = 10;
+    private Node[,] grid;
+
     [SerializeField] private GridMeshCombiner _meshCombiner;
     private GameObject _gridCore; // Optional parent for the grid cubes
+
+    void Awake()
+    {
+        // Singleton pattern implementation
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else if (Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+    }
 
     void Start()
     {
@@ -21,6 +51,9 @@ public class GridController : MonoBehaviour
 
     void GenerateGrid()
     {
+        // Initialize the grid array
+        grid = new Node[gridHeight, gridWidth];
+        
         // Get the size of the cube from the prefab's Renderer
         float cubeSize = 1f;
         if (cubePrefab != null)
@@ -40,7 +73,7 @@ public class GridController : MonoBehaviour
         }
 
         // Calculate starting offset so grid is centered at (0,0,0)
-        float startX = - (gridWidth * cubeSize) / 2f + cubeSize / 2f;
+        float startX = -(gridWidth * cubeSize) / 2f + cubeSize / 2f;
         float startZ = (gridHeight * cubeSize) / 2f - cubeSize / 2f;
 
         for (int row = 0; row < gridHeight; row++)
@@ -63,6 +96,11 @@ public class GridController : MonoBehaviour
 
                 // Name cube with its logical coordinates
                 cube.name = $"Cube ({row},{col})";
+
+                int tileType = tileTypes[row, col];
+                bool isWall = tileType != walkableTileType;
+                
+                grid[row, col] = new Node(isWall, row, col, tileType, position);
             }
         }
     }
@@ -71,8 +109,8 @@ public class GridController : MonoBehaviour
     public Vector2Int WorldToGrid(Vector3 worldPos)
     {
         float tileSize = GetTileSize();
-        float originX = - (gridWidth * tileSize) / 2f;
-        float originZ = - (gridHeight * tileSize) / 2f;
+        float originX = -(gridWidth * tileSize) / 2f;
+        float originZ = -(gridHeight * tileSize) / 2f;
         float localX = worldPos.x - originX;
         float localZ = worldPos.z - originZ;
         int col = Mathf.FloorToInt(localX / tileSize);
@@ -86,8 +124,8 @@ public class GridController : MonoBehaviour
     public Vector3 GridToWorld(Vector2Int gridPos)
     {
         float tileSize = GetTileSize();
-        float originX = - (gridWidth * tileSize) / 2f;
-        float originZ = - (gridHeight * tileSize) / 2f;
+        float originX = -(gridWidth * tileSize) / 2f;
+        float originZ = -(gridHeight * tileSize) / 2f;
         float x = originX + (gridPos.y + 0.5f) * tileSize;
         float z = originZ + (gridPos.x + 0.5f) * tileSize;
         return new Vector3(x, 0f, z);
@@ -106,5 +144,24 @@ public class GridController : MonoBehaviour
                 return rend.bounds.size.x;
         }
         return 1f;
+    }
+
+    // Public methods to access grid data
+    public Node GetNode(int row, int col)
+    {
+        if (row >= 0 && row < gridHeight && col >= 0 && col < gridWidth)
+            return grid[row, col];
+        return null;
+    }
+
+    public bool IsWalkable(int row, int col)
+    {
+        Node node = GetNode(row, col);
+        return node != null && !node.isWall;
+    }
+
+    public Node[,] GetGrid()
+    {
+        return grid;
     }
 }
