@@ -21482,6 +21482,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1622032109}
   - component: {fileID: 1622032110}
+  - component: {fileID: 1622032111}
   m_Layer: 0
   m_Name: GridCore
   m_TagString: Untagged
@@ -21517,8 +21518,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cubePrefab: {fileID: 1575163249440844240, guid: 257bbadab00e54e508fec99ea505a41d, type: 3}
-  gridWidth: 5
-  gridHeight: 5
+  gridWidth: 100
+  gridHeight: 100
+  _meshCombiner: {fileID: 1622032111}
+--- !u!114 &1622032111
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1622032107}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b25a8a42418be334898b8b250a60c69c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  combineOnStart: 0
 --- !u!1001 &1626072942
 PrefabInstance:
   m_ObjectHideFlags: 0

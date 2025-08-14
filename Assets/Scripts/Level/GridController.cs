@@ -5,6 +5,7 @@ public class GridController : MonoBehaviour
     public GameObject cubePrefab;
     public int gridWidth = 5;
     public int gridHeight = 5;
+    [SerializeField] private GridMeshCombiner _meshCombiner;
     private GameObject _gridCore; // Optional parent for the grid cubes
 
     void Start()
@@ -12,7 +13,10 @@ public class GridController : MonoBehaviour
         // The gridCore the object this script is attached to
         _gridCore = this.gameObject;
         GenerateGrid();
-
+        if (_meshCombiner != null)
+        {
+            _meshCombiner.CombineMeshesByMaterial();
+        }
     }
 
     void GenerateGrid()
