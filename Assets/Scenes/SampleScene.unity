@@ -9581,7 +9581,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerController: {fileID: 685703575}
-  targetTag: Ground
+  gridController: {fileID: 1622032110}
 --- !u!114 &685703575
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21518,8 +21518,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cubePrefab: {fileID: 1575163249440844240, guid: 257bbadab00e54e508fec99ea505a41d, type: 3}
-  gridWidth: 100
-  gridHeight: 100
+  gridWidth: 10
+  gridHeight: 10
   _meshCombiner: {fileID: 1622032111}
 --- !u!114 &1622032111
 MonoBehaviour:

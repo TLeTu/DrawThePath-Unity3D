@@ -66,4 +66,45 @@ public class GridController : MonoBehaviour
             }
         }
     }
+
+    // Converts a world position to grid coordinates (row, col)
+    public Vector2Int WorldToGrid(Vector3 worldPos)
+    {
+        float tileSize = GetTileSize();
+        float originX = - (gridWidth * tileSize) / 2f;
+        float originZ = - (gridHeight * tileSize) / 2f;
+        float localX = worldPos.x - originX;
+        float localZ = worldPos.z - originZ;
+        int col = Mathf.FloorToInt(localX / tileSize);
+        int row = Mathf.FloorToInt(localZ / tileSize);
+        col = Mathf.Clamp(col, 0, gridWidth - 1);
+        row = Mathf.Clamp(row, 0, gridHeight - 1);
+        return new Vector2Int(row, col);
+    }
+
+    // Converts grid coordinates (row, col) to the center world position of the tile
+    public Vector3 GridToWorld(Vector2Int gridPos)
+    {
+        float tileSize = GetTileSize();
+        float originX = - (gridWidth * tileSize) / 2f;
+        float originZ = - (gridHeight * tileSize) / 2f;
+        float x = originX + (gridPos.y + 0.5f) * tileSize;
+        float z = originZ + (gridPos.x + 0.5f) * tileSize;
+        return new Vector3(x, 0f, z);
+    }
+
+    // Helper to get tile size from prefab
+    public float GetTileSize()
+    {
+        if (cubePrefab != null)
+        {
+            Renderer rend = cubePrefab.GetComponent<Renderer>();
+            if (rend != null)
+                return rend.bounds.size.x;
+            rend = cubePrefab.GetComponentInChildren<Renderer>();
+            if (rend != null)
+                return rend.bounds.size.x;
+        }
+        return 1f;
+    }
 }
