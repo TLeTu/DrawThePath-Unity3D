@@ -1,0 +1,2 @@
+#### InputController's basic input handling for both mouse and touch
+We will first implement player movement and pathfinding in the guideline, let's add codes to handle player input first inside InputController, it should handle both left click and touch screen, for now let it debug out the console if the input is detected
