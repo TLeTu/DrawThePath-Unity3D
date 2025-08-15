@@ -5,6 +5,9 @@ public class PlayerController : MonoBehaviour
 {
     [SerializeField] private float _moveSpeed = 5f;
 
+    [SerializeField] private PlayerPathVisualizer pathVisualizer;
+    private List<Vector3> _currentPathWorldPositions = null;
+
 
 
     private Vector3? _moveTarget = null;
@@ -36,6 +39,15 @@ public class PlayerController : MonoBehaviour
                 {
                     _moveTarget = _pathQueue.Dequeue();
                 }
+                else
+                {
+                    // Path finished, hide path visualizer
+                    if (pathVisualizer != null)
+                    {
+                        pathVisualizer.HidePath();
+                    }
+                    _currentPathWorldPositions = null;
+                }
             }
         }
     }
@@ -47,10 +59,18 @@ public class PlayerController : MonoBehaviour
             return;
 
         _pathQueue = new Queue<Vector3>();
+        _currentPathWorldPositions = new List<Vector3>();
         foreach (var node in path)
         {
             Vector3 pos = GridManager.Instance.GridToWorld(new Vector2Int(node.row, node.col));
-            _pathQueue.Enqueue(new Vector3(pos.x, transform.position.y, pos.z));
+            Vector3 worldPos = new Vector3(pos.x, transform.position.y, pos.z);
+            _pathQueue.Enqueue(worldPos);
+            _currentPathWorldPositions.Add(worldPos);
+        }
+        // Show path visualizer
+        if (pathVisualizer != null && _currentPathWorldPositions.Count > 1)
+        {
+            pathVisualizer.ShowPath(_currentPathWorldPositions);
         }
         // Start moving to the first point
         if (_pathQueue.Count > 0)
