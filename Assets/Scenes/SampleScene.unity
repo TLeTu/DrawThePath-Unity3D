@@ -489,7 +489,7 @@ GameObject:
   - component: {fileID: 685703574}
   - component: {fileID: 685703575}
   - component: {fileID: 685703576}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -699,6 +699,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _levelsFolderName: Data/Levels
+  _playerController: {fileID: 685703575}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -928,7 +929,7 @@ MonoBehaviour:
   cubePrefab: {fileID: 1575163249440844240, guid: 257bbadab00e54e508fec99ea505a41d, type: 3}
   obstacleGrid: {fileID: 298409932}
   obstaclePrefab: {fileID: 5195403627832710072, guid: 6d82686ea40474e119b7112c11bffa31, type: 3}
-  walkableTileType: 10
+  walkableTileType: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

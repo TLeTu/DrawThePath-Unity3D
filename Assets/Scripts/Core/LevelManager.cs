@@ -4,6 +4,8 @@ public class LevelManager : MonoBehaviour
 {
     public static LevelManager Instance { get; private set; }
     [SerializeField] private string _levelsFolderName;
+    [SerializeField] private PlayerController _playerController;
+    private Vector3 _playerSpawnPosition;
 
     private void Awake()
     {
@@ -25,9 +27,19 @@ public class LevelManager : MonoBehaviour
         Debug.Log($"Loading level: {levelName}");
         // Implement level loading logic here
         LevelData levelData = LoadLevelDataFromJson<LevelData>(levelName);
+
         if (GridManager.Instance != null && levelData != null)
         {
             GridManager.Instance.InitializeGrid(levelData.width, levelData.height, levelData.tiles);
+            _playerSpawnPosition = GridManager.Instance.GridToWorld(new Vector2Int(levelData.startTileX, levelData.startTileY));
+            if (_playerController != null)
+            {
+                _playerController.SpawnPlayer(_playerSpawnPosition);
+            }
+            else
+            {
+                Debug.LogError("PlayerController is not assigned in LevelManager.");
+            }
         }
         else
         {

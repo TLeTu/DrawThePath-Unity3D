@@ -11,7 +11,7 @@ public class GridManager : MonoBehaviour
     [SerializeField] private GameObject cubePrefab;
     [SerializeField] private GameObject obstacleGrid;
     [SerializeField] private GameObject obstaclePrefab;
-    [SerializeField] private int walkableTileType = 10;
+    [SerializeField] private int walkableTileType = 1;
     private Node[,] grid;
     private int[,] tileTypes;
 

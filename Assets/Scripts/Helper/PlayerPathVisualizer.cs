@@ -5,7 +5,7 @@ public class PlayerPathVisualizer : MonoBehaviour
 {
     [SerializeField] private Color pathColor = Color.yellow;
     [SerializeField] private float lineWidth = 0.1f;
-    [SerializeField] private float yOffset = 0.01f; // Slightly above ground
+    [SerializeField] private float yOffset = 0.51f; // Slightly above ground
     private LineRenderer lineRenderer;
 
     private void Awake()

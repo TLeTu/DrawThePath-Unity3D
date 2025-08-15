@@ -49,7 +49,7 @@ public class InputController : MonoBehaviour
                     if (AStarPathfinding.Instance != null)
                     {
                         var path = AStarPathfinding.Instance.FindPath(playerController.transform.position, worldPosition);
-                        if (path != null && path.Count > 1)
+                        if (path != null && path.Count >= 1)
                         {
                             playerController.FollowPath(path);
                         }

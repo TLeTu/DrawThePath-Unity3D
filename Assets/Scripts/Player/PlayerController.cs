@@ -65,7 +65,7 @@ public class PlayerController : MonoBehaviour
             Vector3 pos = GridManager.Instance.GridToWorld(new Vector2Int(node.row, node.col));
             Vector3 worldPos = new Vector3(pos.x, transform.position.y, pos.z);
             _pathQueue.Enqueue(worldPos);
-            _currentPathWorldPositions.Add(worldPos);
+            _currentPathWorldPositions.Add(new Vector3(pos.x, pos.y, pos.z)); // Slightly above ground
         }
         // Show path visualizer
         if (pathVisualizer != null && _currentPathWorldPositions.Count > 1)
@@ -80,6 +80,16 @@ public class PlayerController : MonoBehaviour
     }
     public void SpawnPlayer(Vector3 position)
     {
+        // Set the player's y so that the feet are on top of the tile
+        float tileTopY = GridManager.Instance.GetTileSize() * 0.5f;
+        float playerHeight = 1f;
+        var renderer = GetComponentInChildren<Renderer>();
+        if (renderer != null)
+        {
+            playerHeight = renderer.bounds.size.y;
+        }
+        position.y = tileTopY + playerHeight * 0.5f;
+        Debug.Log($"Spawning player at: {position} (playerHeight={playerHeight})");
         transform.position = position;
         _moveTarget = null;
         _pathQueue = null;
