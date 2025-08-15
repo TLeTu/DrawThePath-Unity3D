@@ -3,7 +3,6 @@ using UnityEngine;
 public class InputController : MonoBehaviour
 {
     public PlayerController playerController; // Reference to PlayerController for movement
-    public AStarPathfinding pathfinder; // Reference to AStarPathfinding
 
     void Update()
     {
@@ -44,11 +43,11 @@ public class InputController : MonoBehaviour
                 Vector3 worldPosition = GridManager.Instance.GridToWorld(gridCoords);
                 Debug.Log($"World position of clicked tile: {worldPosition}");
 
-                // Use AStarPathfinding to get path from player to clicked tile
-                if (playerController != null && pathfinder != null)
+                // Use AStarPathfinding singleton to get path from player to clicked tile
+                if (playerController != null && AStarPathfinding.Instance != null)
                 {
                     Vector3 playerPos = playerController.transform.position;
-                    var path = pathfinder.FindPath(playerPos, worldPosition);
+                    var path = AStarPathfinding.Instance.FindPath(playerPos, worldPosition);
                     if (path != null && path.Count > 0)
                     {
                         // Move player along the path

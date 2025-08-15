@@ -2,7 +2,21 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class AStarPathfinding : MonoBehaviour
-{   
+{
+    public static AStarPathfinding Instance { get; private set; }
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else if (Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+    }
     public List<Node> FindPath(Vector3 startPos, Vector3 targetPos)
     {
         // Reset all nodes before pathfinding

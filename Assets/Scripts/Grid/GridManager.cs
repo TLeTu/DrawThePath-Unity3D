@@ -1,32 +1,21 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class GridManager : MonoBehaviour
 {
     public static GridManager Instance { get; private set; }
-    public GameObject groundGrid;
-    public GameObject cubePrefab;
+    public int gridWidth { get; private set; }
+    public int gridHeight { get; private set; }
 
-    public GameObject obstacleGrid;
-    public GameObject obstaclePrefab;
-
-    public int gridWidth = 8;
-    public int gridHeight = 8;
-    public int[,] tileTypes = new int[,] {
-        {7, 9, 9, 9, 9, 9, 9, 4},
-        {8, 10, 10, 10, 10, 10, 10, 8},
-        {8, 10, 2, 4, 10, 3, 10, 8},
-        {8, 10, 10, 8, 10, 8, 10, 8},
-        {8, 10, 10, 6, 9, 5, 10, 8},
-        {8, 10, 10, 10, 10, 10, 10, 8},
-        {8, 10, 10, 7, 4, 10, 10, 8},
-        {6, 9, 9, 5, 6, 9, 9, 5}
-    };
-    public int walkableTileType = 10;
+    [SerializeField] private GameObject groundGrid;
+    [SerializeField] private GameObject cubePrefab;
+    [SerializeField] private GameObject obstacleGrid;
+    [SerializeField] private GameObject obstaclePrefab;
+    [SerializeField] private int walkableTileType = 10;
     private Node[,] grid;
+    private int[,] tileTypes;
 
-    [SerializeField] private GridMeshCombiner _meshCombiner;
-
-    void Awake()
+    private void Awake()
     {
         // Singleton pattern implementation
         if (Instance == null)
@@ -41,20 +30,30 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    void Start()
+    public void InitializeGrid(int width, int height)
     {
-        GenerateGrid();
-        if (_meshCombiner != null)
+        gridWidth = width;
+        gridHeight = height;
+        tileTypes = new int[height, width];
+        for (int i = 0; i < height; i++)
         {
-            _meshCombiner.CombineMeshesByMaterial();
+            for (int j = 0; j < width; j++)
+            {
+                tileTypes[i, j] = walkableTileType; // Default to walkable
+            }
+        }
+        GenerateGrid();
+        if (groundGrid != null)
+        {
+            CombineMeshes(groundGrid);
         }
     }
 
-    void GenerateGrid()
+    public void GenerateGrid()
     {
         // Initialize the grid array
         grid = new Node[gridHeight, gridWidth];
-        
+
         // Get the size of the cube from the prefab's Renderer
         float cubeSize = 1f;
         if (cubePrefab != null)
@@ -186,5 +185,67 @@ public class GridManager : MonoBehaviour
     public Node[,] GetGrid()
     {
         return grid;
+    }
+
+    public void CombineMeshes(GameObject parent)
+    {
+        List<CombineInstance> combineList = new List<CombineInstance>();
+        Material firstMaterial = null;
+        string firstTag = "Untagged";
+        bool foundMaterial = false;
+        List<GameObject> cubesToDisable = new List<GameObject>();
+
+        // Iterate over all child cubes of the input parent
+        foreach (Transform child in parent.transform)
+        {
+            MeshFilter mf = child.GetComponent<MeshFilter>();
+            MeshRenderer mr = child.GetComponent<MeshRenderer>();
+            if (mf == null || mr == null || mf.sharedMesh == null)
+                continue;
+
+            CombineInstance ci = new CombineInstance();
+            ci.mesh = mf.sharedMesh;
+            ci.subMeshIndex = 0;
+            ci.transform = child.localToWorldMatrix;
+            combineList.Add(ci);
+
+            if (!foundMaterial && mr.sharedMaterial != null)
+            {
+                firstMaterial = mr.sharedMaterial;
+                firstTag = child.tag;
+                foundMaterial = true;
+            }
+            cubesToDisable.Add(child.gameObject);
+        }
+
+        if (combineList.Count > 0 && firstMaterial != null)
+        {
+            GameObject combinedObj = new GameObject($"Combined_{firstMaterial.name}");
+            combinedObj.transform.SetParent(transform, false);
+            combinedObj.isStatic = true;
+
+            Mesh combinedMesh = new Mesh();
+            combinedMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32; // Support large meshes
+            combinedMesh.CombineMeshes(combineList.ToArray(), true, true);
+
+            MeshFilter mf = combinedObj.AddComponent<MeshFilter>();
+            mf.sharedMesh = combinedMesh;
+
+            MeshRenderer mr = combinedObj.AddComponent<MeshRenderer>();
+            mr.sharedMaterial = firstMaterial;
+
+            // Add a MeshCollider for click/touch detection
+            MeshCollider meshCol = combinedObj.AddComponent<MeshCollider>();
+            meshCol.sharedMesh = combinedMesh;
+
+            // Set the tag to match the cubes' tag
+            combinedObj.tag = firstTag;
+        }
+
+        // Disable original cubes
+        foreach (var go in cubesToDisable)
+        {
+            go.SetActive(false);
+        }
     }
 }
