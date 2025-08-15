@@ -4,8 +4,11 @@ public class GridManager : MonoBehaviour
 {
     public static GridManager Instance { get; private set; }
     public GameObject groundGrid;
-
     public GameObject cubePrefab;
+
+    public GameObject obstacleGrid;
+    public GameObject obstaclePrefab;
+
     public int gridWidth = 8;
     public int gridHeight = 8;
     public int[,] tileTypes = new int[,] {
@@ -82,7 +85,7 @@ public class GridManager : MonoBehaviour
                 float x = startX + col * cubeSize;
                 float z = startZ - row * cubeSize; // minus because rows go downward
 
-                Vector3 position = new Vector3(x, 0, z);
+                Vector3 position = new Vector3(x, groundGrid.transform.position.y, z);
 
                 // Spawn cube
                 GameObject cube = Instantiate(cubePrefab, position, Quaternion.identity);
@@ -101,6 +104,13 @@ public class GridManager : MonoBehaviour
                 grid[row, col] = new Node(isWall, row, col, tileType, position);
                 // Debug out the row, col and position of the created node
                 Debug.Log($"Created Node at ({row},{col}) - Position: {position}, IsWall: {isWall}");
+                // If isWall is true, instantiate an obstacle
+                if (isWall && obstaclePrefab != null)
+                {
+                    Vector3 obstaclePosition = new Vector3(x, obstacleGrid.transform.position.y, z);
+                    GameObject obstacle = Instantiate(obstaclePrefab, obstaclePosition, Quaternion.identity);
+                    obstacle.transform.SetParent(obstacleGrid.transform);
+                }
             }
         }
     }
@@ -157,7 +167,7 @@ public class GridManager : MonoBehaviour
     public bool IsWalkable(int row, int col)
     {
         Node node = GetNode(row, col);
-        return node != null && !node.IsWalkable();
+        return node != null && node.IsWalkable();
     }
 
     public Node[,] GetGrid()

@@ -5,10 +5,13 @@ public class AStarPathfinding : MonoBehaviour
 {   
     public List<Node> FindPath(Vector3 startPos, Vector3 targetPos)
     {
+        // Reset all nodes before pathfinding
+        ResetNodes();
+        
         Vector2Int startGrid = GridManager.Instance.WorldToGrid(startPos);
         Vector2Int targetGrid = GridManager.Instance.WorldToGrid(targetPos);
         
-        return FindPath(startGrid.y, startGrid.x, targetGrid.y, targetGrid.x);
+        return FindPath(startGrid.x, startGrid.y, targetGrid.x, targetGrid.y);
     }
     
     public List<Node> FindPath(int startRow, int startCol, int targetRow, int targetCol)
@@ -164,25 +167,6 @@ public class AStarPathfinding : MonoBehaviour
                 grid[row, col].gCost = 0;
                 grid[row, col].hCost = 0;
                 grid[row, col].parent = null;
-            }
-        }
-    }
-    
-    // Visualize the grid in the Scene view
-    void OnDrawGizmos()
-    {
-        if (GridManager.Instance == null) return;
-        
-        Node[,] grid = GridManager.Instance.GetGrid();
-        if (grid == null) return;
-        
-        for (int row = 0; row < GridManager.Instance.gridHeight; row++)
-        {
-            for (int col = 0; col < GridManager.Instance.gridWidth; col++)
-            {
-                Node node = grid[row, col];
-                Gizmos.color = node.wall ? Color.red : Color.white;
-                Gizmos.DrawCube(node.worldPosition, Vector3.one * 0.8f);
             }
         }
     }
