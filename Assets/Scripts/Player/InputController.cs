@@ -45,29 +45,18 @@ public class InputController : MonoBehaviour
 
                 if (playerController != null)
                 {
-                    Vector2Int playerCoords = GridManager.Instance.WorldToGrid(playerController.transform.position);
-                    int dRow = Mathf.Abs(playerCoords.x - targetCoords.x);
-                    int dCol = Mathf.Abs(playerCoords.y - targetCoords.y);
-                    // Only allow move if up to 4 tiles away in one direction (no diagonals, must be straight line)
-                    if ((dRow == 0 && dCol > 0 && dCol <= 4) || (dCol == 0 && dRow > 0 && dRow <= 4))
+                    // Use AStarPathfinding singleton to get path from player to clicked tile
+                    if (AStarPathfinding.Instance != null)
                     {
-                        // Use AStarPathfinding singleton to get path from player to clicked tile
-                        if (AStarPathfinding.Instance != null)
+                        var path = AStarPathfinding.Instance.FindPath(playerController.transform.position, worldPosition);
+                        if (path != null && path.Count > 1)
                         {
-                            var path = AStarPathfinding.Instance.FindPath(playerController.transform.position, worldPosition);
-                            if (path != null && path.Count > 0)
-                            {
-                                playerController.FollowPath(path);
-                            }
-                            else
-                            {
-                                Debug.LogWarning("No path found to target tile.");
-                            }
+                            playerController.FollowPath(path);
                         }
-                    }
-                    else
-                    {
-                        Debug.Log("Selected tile is not directly adjacent. No move.");
+                        else
+                        {
+                            Debug.LogWarning("No path found to target tile.");
+                        }
                     }
                 }
             }
