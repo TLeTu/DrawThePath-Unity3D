@@ -119,14 +119,18 @@ public class GridManager : MonoBehaviour
     public Vector2Int WorldToGrid(Vector3 worldPos)
     {
         float tileSize = GetTileSize();
-        float originX = -(gridWidth * tileSize) / 2f + tileSize / 2f;
-        float originZ = (gridHeight * tileSize) / 2f - tileSize / 2f;
-        float localX = worldPos.x - originX;
-        float localZ = originZ - worldPos.z;
-        int col = Mathf.FloorToInt(localX / tileSize);
-        int row = Mathf.FloorToInt(localZ / tileSize);
+        float startX = -(gridWidth * tileSize) / 2f + tileSize / 2f;
+        float startZ = (gridHeight * tileSize) / 2f - tileSize / 2f;
+
+        // Calculate column and row
+        int col = Mathf.RoundToInt((worldPos.x - startX) / tileSize);
+        int row = Mathf.RoundToInt((startZ - worldPos.z) / tileSize);
+
+        // Clamp to grid bounds
         col = Mathf.Clamp(col, 0, gridWidth - 1);
         row = Mathf.Clamp(row, 0, gridHeight - 1);
+
+        Debug.Log($"[WorldToGrid] worldPos: {worldPos}, tileSize: {tileSize}, startX: {startX}, startZ: {startZ}, row: {row}, col: {col}");
         return new Vector2Int(row, col);
     }
 
@@ -134,11 +138,20 @@ public class GridManager : MonoBehaviour
     public Vector3 GridToWorld(Vector2Int gridPos)
     {
         float tileSize = GetTileSize();
-        float originX = -(gridWidth * tileSize) / 2f + tileSize / 2f;
-        float originZ = (gridHeight * tileSize) / 2f - tileSize / 2f;
-        float x = originX + gridPos.y * tileSize; // gridPos.y is col
-        float z = originZ - gridPos.x * tileSize; // gridPos.x is row
-        return new Vector3(x, 0f, z);
+        float startX = -(gridWidth * tileSize) / 2f + tileSize / 2f;
+        float startZ = (gridHeight * tileSize) / 2f - tileSize / 2f;
+
+        // Clamp gridPos to grid bounds
+        int row = Mathf.Clamp(gridPos.x, 0, gridHeight - 1);
+        int col = Mathf.Clamp(gridPos.y, 0, gridWidth - 1);
+
+        float x = startX + col * tileSize;
+        float z = startZ - row * tileSize;
+        float y = groundGrid != null ? groundGrid.transform.position.y : 0f;
+
+        Vector3 world = new Vector3(x, y, z);
+        Debug.Log($"[GridToWorld] gridPos: {gridPos}, tileSize: {tileSize}, startX: {startX}, startZ: {startZ}, world: {world}");
+        return world;
     }
 
     // Helper to get tile size from prefab

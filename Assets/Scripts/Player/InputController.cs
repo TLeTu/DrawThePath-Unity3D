@@ -3,6 +3,7 @@ using UnityEngine;
 public class InputController : MonoBehaviour
 {
     public PlayerController playerController; // Reference to PlayerController for movement
+    public AStarPathfinding pathfinder; // Reference to AStarPathfinding
 
     void Update()
     {
@@ -38,14 +39,25 @@ public class InputController : MonoBehaviour
             // Check if we hit the grid's collider
             if (GridManager.Instance != null && hit.collider.gameObject.tag == "Ground")
             {
-                Vector3 hitPoint = hit.point;
-                Vector2Int gridPos = GridManager.Instance.WorldToGrid(hitPoint);
-                Vector3 center = GridManager.Instance.GridToWorld(gridPos);
-                Debug.Log($"Selected tile: row={gridPos.x}, col={gridPos.y}, center={center}");
-                if (playerController != null)
+                Vector2Int gridCoords = GridManager.Instance.WorldToGrid(hit.point);
+                Debug.Log($"Clicked grid cell: Row {gridCoords.x}, Col {gridCoords.y}");
+                Vector3 worldPosition = GridManager.Instance.GridToWorld(gridCoords);
+                Debug.Log($"World position of clicked tile: {worldPosition}");
+
+                // Use AStarPathfinding to get path from player to clicked tile
+                if (playerController != null && pathfinder != null)
                 {
-                    Debug.Log($"Moving player towards: {center}");
-                    playerController.MoveTowardsXZ(center);
+                    Vector3 playerPos = playerController.transform.position;
+                    var path = pathfinder.FindPath(playerPos, worldPosition);
+                    if (path != null && path.Count > 0)
+                    {
+                        // Move player along the path
+                        playerController.FollowPath(path);
+                    }
+                    else
+                    {
+                        Debug.LogWarning("No path found to target tile.");
+                    }
                 }
             }
         }
