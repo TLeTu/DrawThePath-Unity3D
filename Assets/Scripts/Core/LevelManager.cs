@@ -53,6 +53,18 @@ public class LevelManager : MonoBehaviour
         Debug.Log("Resetting current level");
         // Implement level reset logic here
     }
+    public void RespawnPlayer()
+    {
+        if (_playerController != null)
+        {
+            Debug.Log($"Respawning player at: {_playerSpawnPosition}");
+            _playerController.SpawnPlayer(_playerSpawnPosition);
+        }
+        else
+        {
+            Debug.LogError("PlayerController is not assigned in LevelManager.");
+        }
+    }
     public T LoadLevelDataFromJson<T>(string fileName)
     {
         // Example: folder = "Levels", fileName = "Level1.json"

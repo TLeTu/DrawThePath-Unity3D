@@ -94,4 +94,25 @@ public class PlayerController : MonoBehaviour
         _moveTarget = null;
         _pathQueue = null;
     }
+    // ontriggerenter if the object collides with tag "Obstacle" respawn the player
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Obstacle"))
+        {
+            Debug.Log("Player collided with an obstacle, respawning...");
+            //call the level manager to respawn the player
+            if (LevelManager.Instance != null)
+            {
+                LevelManager.Instance.RespawnPlayer();
+            }
+            // stop the current path
+            _moveTarget = null;
+            _pathQueue = null;
+            if (pathVisualizer != null)
+            {
+                pathVisualizer.HidePath();
+            }
+        }
+    }
+
 }

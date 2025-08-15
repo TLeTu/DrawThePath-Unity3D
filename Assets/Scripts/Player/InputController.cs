@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class InputController : MonoBehaviour
 {
@@ -43,12 +44,12 @@ public class InputController : MonoBehaviour
                 Vector3 worldPosition = GridManager.Instance.GridToWorld(targetCoords);
                 Debug.Log($"World position of clicked tile: {worldPosition}");
 
-                if (playerController != null)
+                if (playerController != null && AStarPathfinding.Instance != null)
                 {
-                    // Use AStarPathfinding singleton to get path from player to clicked tile
-                    if (AStarPathfinding.Instance != null)
+                    bool isTargetWalkable = GridManager.Instance.IsWalkable(targetCoords.x, targetCoords.y);
+                    var path = AStarPathfinding.Instance.FindPath(playerController.transform.position, worldPosition);
+                    if (isTargetWalkable)
                     {
-                        var path = AStarPathfinding.Instance.FindPath(playerController.transform.position, worldPosition);
                         if (path != null && path.Count >= 1)
                         {
                             playerController.FollowPath(path);
@@ -56,6 +57,45 @@ public class InputController : MonoBehaviour
                         else
                         {
                             Debug.LogWarning("No path found to target tile.");
+                        }
+                    }
+                    else
+                    {
+                        // Try to find a path to the unwalkable tile (should end adjacent)
+                        if (path != null && path.Count >= 1)
+                        {
+                            playerController.FollowPath(path);
+                        }
+                        else
+                        {
+                            // Temporarily treat all tiles as walkable and try again
+                            Debug.Log("No path to unwalkable tile, trying with all tiles walkable...");
+                            // Backup walkable state
+                            var grid = GridManager.Instance.GetGrid();
+                            List<(int,int,bool)> backup = new List<(int,int,bool)>();
+                            for (int row = 0; row < GridManager.Instance.gridHeight; row++)
+                            {
+                                for (int col = 0; col < GridManager.Instance.gridWidth; col++)
+                                {
+                                    var node = grid[row, col];
+                                    backup.Add((row, col, node.wall));
+                                    node.wall = false;
+                                }
+                            }
+                            var pathAny = AStarPathfinding.Instance.FindPath(playerController.transform.position, worldPosition);
+                            // Restore walkable state
+                            foreach (var (row, col, wasWall) in backup)
+                            {
+                                grid[row, col].wall = wasWall;
+                            }
+                            if (pathAny != null && pathAny.Count >= 1)
+                            {
+                                playerController.FollowPath(pathAny);
+                            }
+                            else
+                            {
+                                Debug.LogWarning("No path found to target tile, even with all tiles walkable.");
+                            }
                         }
                     }
                 }
