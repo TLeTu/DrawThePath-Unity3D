@@ -112,6 +112,16 @@ public class PlayerController : MonoBehaviour
             {
                 pathVisualizer.HidePath();
             }
+            // set the tile to walkable
+            Vector2Int obstacleCoords = GridManager.Instance.WorldToGrid(other.transform.position);
+            Node obstacleNode = GridManager.Instance.GetNode(obstacleCoords.x, obstacleCoords.y);
+            if (obstacleNode != null)
+            {
+                obstacleNode.SetWalkable(true);
+                Destroy(other.gameObject);
+                Debug.Log($"Obstacle at {obstacleCoords} set to walkable.");
+            }
+
         }
     }
 
