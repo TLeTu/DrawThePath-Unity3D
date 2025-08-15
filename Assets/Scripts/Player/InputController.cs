@@ -3,7 +3,6 @@ using UnityEngine;
 public class InputController : MonoBehaviour
 {
     public PlayerController playerController; // Reference to PlayerController for movement
-    public GridController gridController; // Reference to GridController for grid math
 
     void Update()
     {
@@ -37,11 +36,11 @@ public class InputController : MonoBehaviour
         {
             Debug.Log($"Hit object: {hit.collider.gameObject.name}");
             // Check if we hit the grid's collider
-            if (gridController != null && hit.collider.gameObject.tag == "Ground")
+            if (GridManager.Instance != null && hit.collider.gameObject.tag == "Ground")
             {
                 Vector3 hitPoint = hit.point;
-                Vector2Int gridPos = gridController.WorldToGrid(hitPoint);
-                Vector3 center = gridController.GridToWorld(gridPos);
+                Vector2Int gridPos = GridManager.Instance.WorldToGrid(hitPoint);
+                Vector3 center = GridManager.Instance.GridToWorld(gridPos);
                 Debug.Log($"Selected tile: row={gridPos.x}, col={gridPos.y}, center={center}");
                 if (playerController != null)
                 {
