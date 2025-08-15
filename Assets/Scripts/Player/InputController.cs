@@ -38,24 +38,36 @@ public class InputController : MonoBehaviour
             // Check if we hit the grid's collider
             if (GridManager.Instance != null && hit.collider.gameObject.tag == "Ground")
             {
-                Vector2Int gridCoords = GridManager.Instance.WorldToGrid(hit.point);
-                Debug.Log($"Clicked grid cell: Row {gridCoords.x}, Col {gridCoords.y}");
-                Vector3 worldPosition = GridManager.Instance.GridToWorld(gridCoords);
+                Vector2Int targetCoords = GridManager.Instance.WorldToGrid(hit.point);
+                Debug.Log($"Clicked grid cell: Row {targetCoords.x}, Col {targetCoords.y}");
+                Vector3 worldPosition = GridManager.Instance.GridToWorld(targetCoords);
                 Debug.Log($"World position of clicked tile: {worldPosition}");
 
-                // Use AStarPathfinding singleton to get path from player to clicked tile
-                if (playerController != null && AStarPathfinding.Instance != null)
+                if (playerController != null)
                 {
-                    Vector3 playerPos = playerController.transform.position;
-                    var path = AStarPathfinding.Instance.FindPath(playerPos, worldPosition);
-                    if (path != null && path.Count > 0)
+                    Vector2Int playerCoords = GridManager.Instance.WorldToGrid(playerController.transform.position);
+                    int dRow = Mathf.Abs(playerCoords.x - targetCoords.x);
+                    int dCol = Mathf.Abs(playerCoords.y - targetCoords.y);
+                    // Only allow move if up to 4 tiles away in one direction (no diagonals, must be straight line)
+                    if ((dRow == 0 && dCol > 0 && dCol <= 4) || (dCol == 0 && dRow > 0 && dRow <= 4))
                     {
-                        // Move player along the path
-                        playerController.FollowPath(path);
+                        // Use AStarPathfinding singleton to get path from player to clicked tile
+                        if (AStarPathfinding.Instance != null)
+                        {
+                            var path = AStarPathfinding.Instance.FindPath(playerController.transform.position, worldPosition);
+                            if (path != null && path.Count > 0)
+                            {
+                                playerController.FollowPath(path);
+                            }
+                            else
+                            {
+                                Debug.LogWarning("No path found to target tile.");
+                            }
+                        }
                     }
                     else
                     {
-                        Debug.LogWarning("No path found to target tile.");
+                        Debug.Log("Selected tile is not directly adjacent. No move.");
                     }
                 }
             }

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private float _moveSpeed = 5f;
+    [SerializeField] private PlayerMoveRangeVisualizer moveRangeVisualizer;
+
 
     private Vector3? _moveTarget = null;
     private Queue<Vector3> _pathQueue = null;
@@ -19,6 +21,8 @@ public class PlayerController : MonoBehaviour
     {
         if (_moveTarget.HasValue)
         {
+            // Player is moving, hide move range
+            if (moveRangeVisualizer != null) moveRangeVisualizer.ClearHighlights();
             Vector3 currentPosition = transform.position;
             Vector3 targetXZ = _moveTarget.Value;
             if (Vector3.Distance(currentPosition, targetXZ) > 0.01f)
@@ -34,6 +38,15 @@ public class PlayerController : MonoBehaviour
                 {
                     _moveTarget = _pathQueue.Dequeue();
                 }
+            }
+        }
+        else
+        {
+            // Player is idle, show move range
+            if (moveRangeVisualizer != null)
+            {
+                Vector2Int playerCoords = GridManager.Instance.WorldToGrid(transform.position);
+                moveRangeVisualizer.ShowMoveRange(playerCoords);
             }
         }
     }
@@ -55,5 +68,11 @@ public class PlayerController : MonoBehaviour
         {
             _moveTarget = _pathQueue.Dequeue();
         }
+    }
+    public void SpawnPlayer(Vector3 position)
+    {
+        transform.position = position;
+        _moveTarget = null;
+        _pathQueue = null;
     }
 }
