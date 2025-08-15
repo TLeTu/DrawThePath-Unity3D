@@ -3,8 +3,9 @@ using UnityEngine;
 public class LevelManager : MonoBehaviour
 {
     public static LevelManager Instance { get; private set; }
+    [SerializeField] private string _levelsFolderName;
 
-    void Awake()
+    private void Awake()
     {
         if (Instance == null)
         {
@@ -23,10 +24,14 @@ public class LevelManager : MonoBehaviour
     {
         Debug.Log($"Loading level: {levelName}");
         // Implement level loading logic here
-        // Initialize the grid and player position
-        if (GridManager.Instance != null)
+        LevelData levelData = LoadLevelDataFromJson<LevelData>(levelName);
+        if (GridManager.Instance != null && levelData != null)
         {
-            GridManager.Instance.InitializeGrid(8, 8); // Example dimensions
+            GridManager.Instance.InitializeGrid(levelData.width, levelData.height, levelData.tiles);
+        }
+        else
+        {
+            Debug.LogError("GridManager instance is null or level data is invalid.");
         }
     }
 
@@ -35,5 +40,21 @@ public class LevelManager : MonoBehaviour
     {
         Debug.Log("Resetting current level");
         // Implement level reset logic here
+    }
+    public T LoadLevelDataFromJson<T>(string fileName)
+    {
+        // Example: folder = "Levels", fileName = "Level1.json"
+        string path = System.IO.Path.Combine(Application.dataPath, _levelsFolderName, fileName);
+        if (!System.IO.File.Exists(path))
+        {
+            Debug.LogError($"JSON file not found at path: {path}");
+            return default;
+        }
+        string json = System.IO.File.ReadAllText(path);
+        T data = JsonUtility.FromJson<T>(json);
+        Debug.Log($"Loaded JSON from {path}");
+        // Debug out the data
+        Debug.Log($"Data: {JsonUtility.ToJson(data, true)}");
+        return data;
     }
 }

@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         // Initialize the game state, load the first level, etc.
-        LevelManager.Instance.LoadLevel("Level1");
+        LevelManager.Instance.LoadLevel("Level1.json");
     }
 
 }

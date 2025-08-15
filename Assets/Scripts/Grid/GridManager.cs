@@ -30,16 +30,16 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    public void InitializeGrid(int width, int height)
+    public void InitializeGrid(int width, int height, IntArrayWrapper[] tilesTypes)
     {
         gridWidth = width;
         gridHeight = height;
-        tileTypes = new int[height, width];
-        for (int i = 0; i < height; i++)
+        tileTypes = new int[gridHeight, gridWidth];
+        for (int i = 0; i < gridHeight; i++)
         {
-            for (int j = 0; j < width; j++)
+            for (int j = 0; j < gridWidth; j++)
             {
-                tileTypes[i, j] = walkableTileType; // Default to walkable
+                tileTypes[i, j] = tilesTypes[i].row[j];
             }
         }
         GenerateGrid();
