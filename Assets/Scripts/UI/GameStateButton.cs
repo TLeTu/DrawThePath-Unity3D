@@ -12,9 +12,9 @@ public class GameStateButton : MonoBehaviour
         // Change the game state to LevelsMenuState
         GameManager.Instance.ChangeGameState(new LevelsMenuState());
     }
-    public void ChangeToInGameState()
+    public void ChangeToInGameState(int level)
     {
         // Change the game state to InGameState
-        GameManager.Instance.ChangeGameState(new InGameState());
+        GameManager.Instance.ChangeGameState(new InGameState(level));
     }
 }

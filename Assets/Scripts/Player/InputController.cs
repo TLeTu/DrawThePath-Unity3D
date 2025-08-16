@@ -7,19 +7,21 @@ public class InputController : MonoBehaviour
 
     private void Update()
     {
-        // Mouse input
-        if (Input.GetMouseButtonDown(0))
+        if (GameManager.Instance == null || !GameManager.Instance.IsGameRunning)
         {
-            Debug.Log("Mouse clicked, trying to select tile...");
-
+            return; // Ignore input if the game is not running
+        }
+        // Mouse input: hold to move
+        if (Input.GetMouseButton(0))
+        {
             TrySelectTile(Input.mousePosition);
         }
-        // Touch input
+        // Touch input: hold to move
         if (Input.touchCount > 0)
         {
             foreach (Touch touch in Input.touches)
             {
-                if (touch.phase == TouchPhase.Began)
+                if (touch.phase == TouchPhase.Began || touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary)
                 {
                     TrySelectTile(touch.position);
                 }

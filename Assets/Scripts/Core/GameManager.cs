@@ -4,6 +4,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     // List of TextAssets for levels, can be populated in the inspector
+    public bool IsGameRunning => _currentGameState is InGameState;
     [SerializeField] private TextAsset[] _levels;
     [SerializeField] private GameObject _mainMenuUI;
     private int _playerLives = 3;
@@ -32,11 +33,11 @@ public class GameManager : MonoBehaviour
     {
         _currentGameState?.Update();
     }
-    private void NewGame()
+    public void NewGame(int level)
     {
         // Reset player lives and other game state
         _playerLives = 3;
-        LevelManager.Instance.LoadLevel(_levels[0]);
+        LevelManager.Instance.LoadLevel(_levels[level]);
     }
     public void UponPlayerCollision(GameObject other)
     {
