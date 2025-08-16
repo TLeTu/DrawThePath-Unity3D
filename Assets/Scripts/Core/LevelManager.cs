@@ -22,11 +22,10 @@ public class LevelManager : MonoBehaviour
     }
 
     // Method to load a level by name
-    public void LoadLevel(string levelName)
+    public void LoadLevel(TextAsset levelAsset)
     {
-        Debug.Log($"Loading level: {levelName}");
         // Implement level loading logic here
-        LevelData levelData = LoadLevelDataFromJson<LevelData>(levelName);
+        LevelData levelData = LoadLevelDataFromJson<LevelData>(levelAsset);
 
         if (GridManager.Instance != null && levelData != null)
         {
@@ -53,6 +52,27 @@ public class LevelManager : MonoBehaviour
         Debug.Log("Resetting current level");
         // Implement level reset logic here
     }
+    public void EndLevel()
+    {
+        Debug.Log("Ending current level");
+        // Implement level end logic here, e.g., show end screen, load next level, etc.
+        _playerController.Destroy();
+        if (GridManager.Instance != null)
+        {
+            GridManager.Instance.DestroyGrid();
+        }
+    }
+    public void DestroyObstacle(GameObject obstacle)
+    {
+        if (obstacle != null)
+        {
+            GridManager.Instance.DestroyObstacle(obstacle);
+        }
+        else
+        {
+            Debug.LogWarning("Attempted to destroy a null obstacle.");
+        }
+    }
     public void RespawnPlayer()
     {
         if (_playerController != null)
@@ -65,18 +85,16 @@ public class LevelManager : MonoBehaviour
             Debug.LogError("PlayerController is not assigned in LevelManager.");
         }
     }
-    public T LoadLevelDataFromJson<T>(string fileName)
+    public T LoadLevelDataFromJson<T>(TextAsset levelAsset) where T : class
     {
-        // Example: folder = "Levels", fileName = "Level1.json"
-        string path = System.IO.Path.Combine(Application.dataPath, _levelsFolderName, fileName);
-        if (!System.IO.File.Exists(path))
+        if (levelAsset == null)
         {
-            Debug.LogError($"JSON file not found at path: {path}");
-            return default;
+            Debug.LogError("Level asset is null.");
+            return null;
         }
-        string json = System.IO.File.ReadAllText(path);
+        string json = levelAsset.text;
         T data = JsonUtility.FromJson<T>(json);
-        Debug.Log($"Loaded JSON from {path}");
+        Debug.Log($"Loaded JSON from TextAsset: {levelAsset.name}");
         // Debug out the data
         Debug.Log($"Data: {JsonUtility.ToJson(data, true)}");
         return data;

@@ -100,10 +100,10 @@ public class PlayerController : MonoBehaviour
         if (other.CompareTag("Obstacle"))
         {
             Debug.Log("Player collided with an obstacle, respawning...");
-            //call the level manager to respawn the player
-            if (LevelManager.Instance != null)
+            //call the game manager to respawn the player
+            if (GameManager.Instance != null)
             {
-                LevelManager.Instance.RespawnPlayer();
+                GameManager.Instance.UponPlayerCollision(other.gameObject);
             }
             // stop the current path
             _moveTarget = null;
@@ -112,17 +112,18 @@ public class PlayerController : MonoBehaviour
             {
                 pathVisualizer.HidePath();
             }
-            // set the tile to walkable
-            Vector2Int obstacleCoords = GridManager.Instance.WorldToGrid(other.transform.position);
-            Node obstacleNode = GridManager.Instance.GetNode(obstacleCoords.x, obstacleCoords.y);
-            if (obstacleNode != null)
-            {
-                obstacleNode.SetWalkable(true);
-                Destroy(other.gameObject);
-                Debug.Log($"Obstacle at {obstacleCoords} set to walkable.");
-            }
 
         }
     }
-
+    public void Destroy()
+    {
+        _moveTarget = null;
+        _pathQueue = null;
+        if (pathVisualizer != null)
+        {
+            pathVisualizer.HidePath();
+        }
+        // Disable the player object
+        gameObject.SetActive(false);
+    }
 }
