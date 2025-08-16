@@ -92,9 +92,6 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 0ae71f41e4f498901a60fae063191043, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2123006829968063532}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 0ae71f41e4f498901a60fae063191043, type: 3}
-      insertIndex: -1
       addedObject: {fileID: -2136423373396772985}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 0ae71f41e4f498901a60fae063191043, type: 3}
       insertIndex: -1
@@ -111,29 +108,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 0ae71f41e4f498901a60fae063191043, type: 3}
   m_PrefabInstance: {fileID: 8032255791133538834}
   m_PrefabAsset: {fileID: 0}
---- !u!136 &2123006829968063532
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7185818404079241027}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.93099487
-  m_Height: 2.89493
-  m_Direction: 1
-  m_Center: {x: -0.004662752, y: 1.4540911, z: 0}
 --- !u!114 &-2136423373396772985
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -159,7 +133,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a78deb7ed3aeae2cb0d9ab10e31ef3d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _moveSpeed: 5
+  _moveSpeed: 10
   _pathVisualizer: {fileID: -3928069416988389591}
 --- !u!114 &-3928069416988389591
 MonoBehaviour:

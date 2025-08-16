@@ -13,6 +13,7 @@ public class GridManager : MonoBehaviour
     [SerializeField] private GameObject _obstaclePrefab;
     [SerializeField] private GameObject _cubePoolParent;
     [SerializeField] private GameObject _obstaclePoolParent;
+    [SerializeField] private GameObject _goalPrefab;
     [SerializeField] private int _walkableTileType = 1;
     private Node[,] _grid;
     private int[,] _tileTypes;
@@ -72,6 +73,23 @@ public class GridManager : MonoBehaviour
         GenerateGrid();
 
     }
+    public void SpawnGoal(Vector3 goalPosition)
+    {
+        if (_goalPrefab != null)
+        {
+            goalPosition.y = _groundGrid.transform.position.y + GetTileSize() / 2f + 1f;
+            GameObject goal = Instantiate(_goalPrefab, goalPosition, Quaternion.identity);
+            goal.name = "Goal";
+            if (_obstacleGrid != null)
+            {
+                goal.transform.SetParent(_obstacleGrid.transform);
+            }
+        }
+        else
+        {
+            Debug.LogError("Goal prefab is not assigned in GridManager.");
+        }
+    }
 
     public void GenerateGrid()
     {
@@ -79,22 +97,7 @@ public class GridManager : MonoBehaviour
         _grid = new Node[gridHeight, gridWidth];
 
         // Get the size of the cube from the prefab's Renderer
-        float cubeSize = 1f;
-        if (_cubePrefab != null)
-        {
-            Renderer rend = _cubePrefab.GetComponent<Renderer>();
-            if (rend != null)
-            {
-                cubeSize = rend.bounds.size.x;
-            }
-            else
-            {
-                // Try to get from a child if not on root
-                rend = _cubePrefab.GetComponentInChildren<Renderer>();
-                if (rend != null)
-                    cubeSize = rend.bounds.size.x;
-            }
-        }
+        float cubeSize = GetTileSize();
 
         // Calculate starting offset so _grid is centered at (0,0,0)
         float startX = -(gridWidth * cubeSize) / 2f + cubeSize / 2f;
@@ -196,6 +199,23 @@ public class GridManager : MonoBehaviour
                 }
             }
             _grid = null;
+
+            // Destroy anything left in the grids children
+            foreach (Transform child in _groundGrid.transform)
+            {
+                if (child.gameObject.activeInHierarchy)
+                {
+                    Destroy(child.gameObject);
+
+                }
+            }
+            foreach (Transform child in _obstacleGrid.transform)
+            {
+                if (child.gameObject.activeInHierarchy)
+                {
+                    Destroy(child.gameObject);
+                }
+            }
         }
     }
     public void DestroyObstacle(GameObject obstacle)

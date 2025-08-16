@@ -41,6 +41,7 @@ public class LevelManager : MonoBehaviour
             {
                 Debug.LogError("PlayerController is not assigned in LevelManager.");
             }
+            GridManager.Instance.SpawnGoal(_endPosition);
         }
         else
         {

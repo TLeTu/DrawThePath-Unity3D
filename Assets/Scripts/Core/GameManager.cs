@@ -7,6 +7,9 @@ public class GameManager : MonoBehaviour
     public bool IsGameRunning => _currentGameState is InGameState;
     [SerializeField] private TextAsset[] _levels;
     [SerializeField] private GameObject _mainMenuUI;
+    [SerializeField] private GameObject _levelsMenuUI;
+    [SerializeField] private GameObject _gameOverUI;
+    [SerializeField] private GameObject _gameWinUI;
     private int _playerLives = 3;
     private IGameState _currentGameState;
 
@@ -41,18 +44,28 @@ public class GameManager : MonoBehaviour
     }
     public void UponPlayerCollision(GameObject other)
     {
-        _playerLives--;
-        if (_playerLives <= 0)
+        if (other.CompareTag("Obstacle"))
         {
-            Debug.Log("Game Over");
-            // Handle game over logic, e.g., show game over screen, reset lives, etc.
-            LevelManager.Instance.EndLevel();
+            _playerLives--;
+            if (_playerLives <= 0)
+            {
+                Debug.Log("Game Over");
+                // Handle game over logic, e.g., show game over screen, reset lives, etc.
+                LevelManager.Instance.EndLevel();
+                ChangeGameState(new GameOverState());
+            }
+            else
+            {
+                Debug.Log($"Player died. Lives remaining: {_playerLives}");
+                LevelManager.Instance.DestroyObstacle(other);
+                LevelManager.Instance.RespawnPlayer();
+            }
         }
-        else
+        else if (other.CompareTag("Goal"))
         {
-            Debug.Log($"Player died. Lives remaining: {_playerLives}");
-            LevelManager.Instance.DestroyObstacle(other);
-            LevelManager.Instance.RespawnPlayer();
+            Debug.Log("Player reached the goal!");
+            LevelManager.Instance.EndLevel();
+            ChangeGameState(new GameWinState());
         }
     }
     public void ShowMainMenu()
@@ -75,6 +88,72 @@ public class GameManager : MonoBehaviour
         else
         {
             Debug.LogWarning("Main Menu UI is not assigned in GameManager.");
+        }
+    }
+    public void ShowLevelsMenu()
+    {
+        if (_levelsMenuUI != null)
+        {
+            _levelsMenuUI.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("Levels Menu UI is not assigned in GameManager.");
+        }
+    }
+    public void HideLevelsMenu()
+    {
+        if (_levelsMenuUI != null)
+        {
+            _levelsMenuUI.SetActive(false);
+        }
+        else
+        {
+            Debug.LogWarning("Levels Menu UI is not assigned in GameManager.");
+        }
+    }
+    public void ShowGameOverUI()
+    {
+        if (_gameOverUI != null)
+        {
+            _gameOverUI.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("Game Over UI is not assigned in GameManager.");
+        }
+    }
+    public void HideGameOverUI()
+    {
+        if (_gameOverUI != null)
+        {
+            _gameOverUI.SetActive(false);
+        }
+        else
+        {
+            Debug.LogWarning("Game Over UI is not assigned in GameManager.");
+        }
+    }
+    public void ShowGameWinUI()
+    {
+        if (_gameWinUI != null)
+        {
+            _gameWinUI.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("Game Win UI is not assigned in GameManager.");
+        }
+    }
+    public void HideGameWinUI()
+    {
+        if (_gameWinUI != null)
+        {
+            _gameWinUI.SetActive(false);
+        }
+        else
+        {
+            Debug.LogWarning("Game Win UI is not assigned in GameManager.");
         }
     }
     public void ChangeGameState(IGameState newState)

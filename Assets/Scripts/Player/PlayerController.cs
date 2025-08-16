@@ -107,22 +107,18 @@ public class PlayerController : MonoBehaviour
     // ontriggerenter if the object collides with tag "Obstacle" respawn the player
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Obstacle"))
+        Debug.Log("Player collided with an obstacle, respawning...");
+        //call the game manager to respawn the player
+        if (GameManager.Instance != null)
         {
-            Debug.Log("Player collided with an obstacle, respawning...");
-            //call the game manager to respawn the player
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.UponPlayerCollision(other.gameObject);
-            }
-            // stop the current path
-            _moveTarget = null;
-            _pathQueue = null;
-            if (_pathVisualizer != null)
-            {
-                _pathVisualizer.HidePath();
-            }
-
+            GameManager.Instance.UponPlayerCollision(other.gameObject);
+        }
+        // stop the current path
+        _moveTarget = null;
+        _pathQueue = null;
+        if (_pathVisualizer != null)
+        {
+            _pathVisualizer.HidePath();
         }
     }
     public void Destroy()
