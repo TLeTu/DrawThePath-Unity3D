@@ -3,47 +3,47 @@ using System.Collections.Generic;
 
 public class PlayerPathVisualizer : MonoBehaviour
 {
-    [SerializeField] private Color pathColor = Color.yellow;
-    [SerializeField] private float lineWidth = 0.1f;
-    [SerializeField] private float yOffset = 0.51f; // Slightly above ground
-    private LineRenderer lineRenderer;
+    [SerializeField] private Color _pathColor = Color.yellow;
+    [SerializeField] private float _lineWidth = 0.1f;
+    [SerializeField] private float _yOffset = 0.51f; // Slightly above ground
+    private LineRenderer _lineRenderer;
 
     private void Awake()
     {
-        lineRenderer = GetComponent<LineRenderer>();
-        if (lineRenderer == null)
+        _lineRenderer = GetComponent<LineRenderer>();
+        if (_lineRenderer == null)
         {
-            lineRenderer = gameObject.AddComponent<LineRenderer>();
+            _lineRenderer = gameObject.AddComponent<LineRenderer>();
         }
-        lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
-        lineRenderer.startColor = pathColor;
-        lineRenderer.endColor = pathColor;
-        lineRenderer.startWidth = lineWidth;
-        lineRenderer.endWidth = lineWidth;
-        lineRenderer.positionCount = 0;
-        lineRenderer.useWorldSpace = true;
-        lineRenderer.enabled = false;
+        _lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+        _lineRenderer.startColor = _pathColor;
+        _lineRenderer.endColor = _pathColor;
+        _lineRenderer.startWidth = _lineWidth;
+        _lineRenderer.endWidth = _lineWidth;
+        _lineRenderer.positionCount = 0;
+        _lineRenderer.useWorldSpace = true;
+        _lineRenderer.enabled = false;
     }
 
     public void ShowPath(List<Vector3> path)
     {
         if (path == null || path.Count < 2)
         {
-            lineRenderer.enabled = false;
+            _lineRenderer.enabled = false;
             return;
         }
-        lineRenderer.positionCount = path.Count;
+        _lineRenderer.positionCount = path.Count;
         for (int i = 0; i < path.Count; i++)
         {
-            Vector3 pos = path[i] + Vector3.up * yOffset;
-            lineRenderer.SetPosition(i, pos);
+            Vector3 pos = path[i] + Vector3.up * _yOffset;
+            _lineRenderer.SetPosition(i, pos);
         }
-        lineRenderer.enabled = true;
+        _lineRenderer.enabled = true;
     }
 
     public void HidePath()
     {
-        lineRenderer.enabled = false;
-        lineRenderer.positionCount = 0;
+        _lineRenderer.enabled = false;
+        _lineRenderer.positionCount = 0;
     }
 }

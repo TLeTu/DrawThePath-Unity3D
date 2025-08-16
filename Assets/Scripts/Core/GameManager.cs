@@ -4,8 +4,10 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     // List of TextAssets for levels, can be populated in the inspector
-    [SerializeField] private TextAsset[] levels;
+    [SerializeField] private TextAsset[] _levels;
+    [SerializeField] private GameObject _mainMenuUI;
     private int _playerLives = 3;
+    private IGameState _currentGameState;
 
     private void Awake()
     {
@@ -23,13 +25,18 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         // Initialize the game state, load the first level, etc.
-        NewGame();
+        // NewGame();
+        ChangeGameState(new MainMenuState());
+    }
+    private void Update()
+    {
+        _currentGameState?.Update();
     }
     private void NewGame()
     {
         // Reset player lives and other game state
         _playerLives = 3;
-        LevelManager.Instance.LoadLevel(levels[0]);
+        LevelManager.Instance.LoadLevel(_levels[0]);
     }
     public void UponPlayerCollision(GameObject other)
     {
@@ -46,5 +53,36 @@ public class GameManager : MonoBehaviour
             LevelManager.Instance.DestroyObstacle(other);
             LevelManager.Instance.RespawnPlayer();
         }
+    }
+    public void ShowMainMenu()
+    {
+        if (_mainMenuUI != null)
+        {
+            _mainMenuUI.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("Main Menu UI is not assigned in GameManager.");
+        }
+    }
+    public void HideMainMenu()
+    {
+        if (_mainMenuUI != null)
+        {
+            _mainMenuUI.SetActive(false);
+        }
+        else
+        {
+            Debug.LogWarning("Main Menu UI is not assigned in GameManager.");
+        }
+    }
+    public void ChangeGameState(IGameState newState)
+    {
+        if (_currentGameState != null)
+        {
+            _currentGameState.Exit();
+        }
+        _currentGameState = newState;
+        _currentGameState.Enter();
     }
 }

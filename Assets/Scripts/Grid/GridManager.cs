@@ -7,15 +7,15 @@ public class GridManager : MonoBehaviour
     public int gridWidth { get; private set; }
     public int gridHeight { get; private set; }
 
-    [SerializeField] private GameObject groundGrid;
-    [SerializeField] private GameObject cubePrefab;
-    [SerializeField] private GameObject obstacleGrid;
-    [SerializeField] private GameObject obstaclePrefab;
-    [SerializeField] private GameObject cubePoolParent;
-    [SerializeField] private GameObject obstaclePoolParent;
-    [SerializeField] private int walkableTileType = 1;
-    private Node[,] grid;
-    private int[,] tileTypes;
+    [SerializeField] private GameObject _groundGrid;
+    [SerializeField] private GameObject _cubePrefab;
+    [SerializeField] private GameObject _obstacleGrid;
+    [SerializeField] private GameObject _obstaclePrefab;
+    [SerializeField] private GameObject _cubePoolParent;
+    [SerializeField] private GameObject _obstaclePoolParent;
+    [SerializeField] private int _walkableTileType = 1;
+    private Node[,] _grid;
+    private int[,] _tileTypes;
     // A pool of cubes to avoid instantiation overhead
     private List<GameObject> _cubePool = new List<GameObject>();
     private List<GameObject> _obstaclePool = new List<GameObject>();
@@ -34,23 +34,23 @@ public class GridManager : MonoBehaviour
             return;
         }
         // Initialize the cube pool
-        if (cubePoolParent != null && cubePrefab != null)
+        if (_cubePoolParent != null && _cubePrefab != null)
         {
             for (int i = 0; i < 100; i++) // Pre-populate the pool with 100 cubes
             {
-                GameObject cube = Instantiate(cubePrefab);
-                cube.transform.SetParent(cubePoolParent.transform);
+                GameObject cube = Instantiate(_cubePrefab);
+                cube.transform.SetParent(_cubePoolParent.transform);
                 cube.SetActive(false);
                 _cubePool.Add(cube);
             }
         }
         // Initialize the obstacle pool
-        if (obstaclePoolParent != null && obstaclePrefab != null)
+        if (_obstaclePoolParent != null && _obstaclePrefab != null)
         {
             for (int i = 0; i < 100; i++) // Pre-populate the pool with 100 obstacles
                 {
-                GameObject obstacle = Instantiate(obstaclePrefab);
-                obstacle.transform.SetParent(obstaclePoolParent.transform);
+                GameObject obstacle = Instantiate(_obstaclePrefab);
+                obstacle.transform.SetParent(_obstaclePoolParent.transform);
                 obstacle.SetActive(false);
                 _obstaclePool.Add(obstacle);
             }
@@ -61,31 +61,31 @@ public class GridManager : MonoBehaviour
     {
         gridWidth = width;
         gridHeight = height;
-        tileTypes = new int[gridHeight, gridWidth];
+        _tileTypes = new int[gridHeight, gridWidth];
         for (int i = 0; i < gridHeight; i++)
         {
             for (int j = 0; j < gridWidth; j++)
             {
-                tileTypes[i, j] = tilesTypes[i].row[j];
+                _tileTypes[i, j] = tilesTypes[i].row[j];
             }
         }
         GenerateGrid();
-        if (groundGrid != null)
+        if (_groundGrid != null)
         {
-            CombineMeshes(groundGrid);
+            CombineMeshes(_groundGrid);
         }
     }
 
     public void GenerateGrid()
     {
-        // Initialize the grid array
-        grid = new Node[gridHeight, gridWidth];
+        // Initialize the _grid array
+        _grid = new Node[gridHeight, gridWidth];
 
         // Get the size of the cube from the prefab's Renderer
         float cubeSize = 1f;
-        if (cubePrefab != null)
+        if (_cubePrefab != null)
         {
-            Renderer rend = cubePrefab.GetComponent<Renderer>();
+            Renderer rend = _cubePrefab.GetComponent<Renderer>();
             if (rend != null)
             {
                 cubeSize = rend.bounds.size.x;
@@ -93,13 +93,13 @@ public class GridManager : MonoBehaviour
             else
             {
                 // Try to get from a child if not on root
-                rend = cubePrefab.GetComponentInChildren<Renderer>();
+                rend = _cubePrefab.GetComponentInChildren<Renderer>();
                 if (rend != null)
                     cubeSize = rend.bounds.size.x;
             }
         }
 
-        // Calculate starting offset so grid is centered at (0,0,0)
+        // Calculate starting offset so _grid is centered at (0,0,0)
         float startX = -(gridWidth * cubeSize) / 2f + cubeSize / 2f;
         float startZ = (gridHeight * cubeSize) / 2f - cubeSize / 2f;
 
@@ -111,7 +111,7 @@ public class GridManager : MonoBehaviour
                 float x = startX + col * cubeSize;
                 float z = startZ - row * cubeSize; // minus because rows go downward
 
-                Vector3 position = new Vector3(x, groundGrid.transform.position.y, z);
+                Vector3 position = new Vector3(x, _groundGrid.transform.position.y, z);
 
                 /// Get a cube from the pool or instantiate a new one
                 GameObject cube;
@@ -124,28 +124,28 @@ public class GridManager : MonoBehaviour
                 }
                 else
                 {
-                    cube = Instantiate(cubePrefab, position, Quaternion.identity);
+                    cube = Instantiate(_cubePrefab, position, Quaternion.identity);
                 }
-                // Set parent to groundGrid if assigned
-                if (groundGrid != null)
+                // Set parent to _groundGrid if assigned
+                if (_groundGrid != null)
                 {
-                    cube.transform.SetParent(groundGrid.transform);
+                    cube.transform.SetParent(_groundGrid.transform);
                 }
 
                 // Name cube with its logical coordinates
                 cube.name = $"Cube ({row},{col})";
 
-                int tileType = tileTypes[row, col];
-                bool isWall = tileType != walkableTileType;
+                int tileType = _tileTypes[row, col];
+                bool isWall = tileType != _walkableTileType;
 
-                grid[row, col] = new Node(isWall, row, col, tileType, position);
+                _grid[row, col] = new Node(isWall, row, col, tileType, position);
                 // Debug out the row, col and position of the created node
                 Debug.Log($"Created Node at ({row},{col}) - Position: {position}, IsWall: {isWall}");
                 // If isWall is true, instantiate an obstacle
-                if (isWall && obstaclePrefab != null)
+                if (isWall && _obstaclePrefab != null)
                 {
-                    // Calculate obstacle y position, it should be the groundGrid's y position + half the tilesize + half the obstacle prefab object size
-                    float obstacleY = groundGrid.transform.position.y + cubeSize / 2f + (obstaclePrefab.GetComponent<Renderer>()?.bounds.size.y ?? 0f) / 2f;
+                    // Calculate obstacle y position, it should be the _groundGrid's y position + half the tilesize + half the obstacle prefab object size
+                    float obstacleY = _groundGrid.transform.position.y + cubeSize / 2f + (_obstaclePrefab.GetComponent<Renderer>()?.bounds.size.y ?? 0f) / 2f;
                     Vector3 obstaclePosition = new Vector3(x, obstacleY, z);
                     GameObject obstacle;
                     if (_obstaclePool.Count > 0)
@@ -157,57 +157,57 @@ public class GridManager : MonoBehaviour
                     }
                     else
                     {
-                        obstacle = Instantiate(obstaclePrefab, obstaclePosition, Quaternion.identity);
+                        obstacle = Instantiate(_obstaclePrefab, obstaclePosition, Quaternion.identity);
                     }
                     // Name obstacle with its logical coordinates
                     obstacle.name = $"Obstacle ({row},{col})";
-                    obstacle.transform.SetParent(obstacleGrid.transform);
+                    obstacle.transform.SetParent(_obstacleGrid.transform);
                 }
             }
         }
     }
     public void DestroyGrid()
     {
-        if (grid != null)
+        if (_grid != null)
         {
-            foreach (Node node in grid)
+            foreach (Node node in _grid)
             {
                 if (node != null)
                 {
                     // Return the cube to the pool
-                    GameObject cube = groundGrid.transform.Find($"Cube ({node.row},{node.col})")?.gameObject;
+                    GameObject cube = _groundGrid.transform.Find($"Cube ({node.row},{node.col})")?.gameObject;
                     if (cube != null)
                     {
                         cube.SetActive(false);
                         _cubePool.Add(cube);
-                        if (cubePoolParent != null)
+                        if (_cubePoolParent != null)
                         {
-                            cube.transform.SetParent(cubePoolParent.transform);
+                            cube.transform.SetParent(_cubePoolParent.transform);
                         }
                     }
                     // Do the same for obstacles
-                    GameObject obstacle = obstacleGrid.transform.Find($"Obstacle ({node.row},{node.col})")?.gameObject;
+                    GameObject obstacle = _obstacleGrid.transform.Find($"Obstacle ({node.row},{node.col})")?.gameObject;
                     if (obstacle != null)
                     {
                         obstacle.SetActive(false);
                         _obstaclePool.Add(obstacle);
-                        if (obstaclePoolParent != null)
+                        if (_obstaclePoolParent != null)
                         {
-                            obstacle.transform.SetParent(obstaclePoolParent.transform);
+                            obstacle.transform.SetParent(_obstaclePoolParent.transform);
                         }
                     }
                 }
             }
             // Destroy the combined mesh (leftover children that are not pooled cubes)
-            if (groundGrid != null)
+            if (_groundGrid != null)
             {
-                foreach (Transform child in groundGrid.transform)
+                foreach (Transform child in _groundGrid.transform)
                 {
                     if (!child.name.StartsWith("Cube ("))
                         Destroy(child.gameObject);
                 }
             }
-            grid = null;
+            _grid = null;
         }
     }
     public void DestroyObstacle(GameObject obstacle)
@@ -216,15 +216,15 @@ public class GridManager : MonoBehaviour
         {
             obstacle.SetActive(false);
             _obstaclePool.Add(obstacle);
-            if (obstaclePoolParent != null)
+            if (_obstaclePoolParent != null)
             {
-                obstacle.transform.SetParent(obstaclePoolParent.transform);
+                obstacle.transform.SetParent(_obstaclePoolParent.transform);
             }
             // Also make the corresponding Node walkable
             Vector2Int coords = WorldToGrid(obstacle.transform.position);
             if (coords.x >= 0 && coords.x < gridHeight && coords.y >= 0 && coords.y < gridWidth)
             {
-                Node node = grid[coords.x, coords.y];
+                Node node = _grid[coords.x, coords.y];
                 if (node != null)
                 {
                     node.wall = false; // Mark the node as walkable
@@ -233,7 +233,7 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    // Converts a world position to grid coordinates (row, col)
+    // Converts a world position to _grid coordinates (row, col)
     public Vector2Int WorldToGrid(Vector3 worldPos)
     {
         float tileSize = GetTileSize();
@@ -244,7 +244,7 @@ public class GridManager : MonoBehaviour
         int col = Mathf.RoundToInt((worldPos.x - startX) / tileSize);
         int row = Mathf.RoundToInt((startZ - worldPos.z) / tileSize);
 
-        // Clamp to grid bounds
+        // Clamp to _grid bounds
         col = Mathf.Clamp(col, 0, gridWidth - 1);
         row = Mathf.Clamp(row, 0, gridHeight - 1);
 
@@ -252,46 +252,46 @@ public class GridManager : MonoBehaviour
         return new Vector2Int(row, col);
     }
 
-    // Converts grid coordinates (row, col) to the center world position of the tile
-    public Vector3 GridToWorld(Vector2Int gridPos)
+    // Converts _grid coordinates (row, col) to the center world position of the tile
+    public Vector3 GridToWorld(Vector2Int _gridPos)
     {
         float tileSize = GetTileSize();
         float startX = -(gridWidth * tileSize) / 2f + tileSize / 2f;
         float startZ = (gridHeight * tileSize) / 2f - tileSize / 2f;
 
-        // Clamp gridPos to grid bounds
-        int row = Mathf.Clamp(gridPos.x, 0, gridHeight - 1);
-        int col = Mathf.Clamp(gridPos.y, 0, gridWidth - 1);
+        // Clamp _gridPos to _grid bounds
+        int row = Mathf.Clamp(_gridPos.x, 0, gridHeight - 1);
+        int col = Mathf.Clamp(_gridPos.y, 0, gridWidth - 1);
 
         float x = startX + col * tileSize;
         float z = startZ - row * tileSize;
-        float y = groundGrid != null ? groundGrid.transform.position.y : 0f;
+        float y = _groundGrid != null ? _groundGrid.transform.position.y : 0f;
 
         Vector3 world = new Vector3(x, y, z);
-        Debug.Log($"[GridToWorld] gridPos: {gridPos}, tileSize: {tileSize}, startX: {startX}, startZ: {startZ}, world: {world}");
+        Debug.Log($"[_gridToWorld] _gridPos: {_gridPos}, tileSize: {tileSize}, startX: {startX}, startZ: {startZ}, world: {world}");
         return world;
     }
 
     // Helper to get tile size from prefab
     public float GetTileSize()
     {
-        if (cubePrefab != null)
+        if (_cubePrefab != null)
         {
-            Renderer rend = cubePrefab.GetComponent<Renderer>();
+            Renderer rend = _cubePrefab.GetComponent<Renderer>();
             if (rend != null)
                 return rend.bounds.size.x;
-            rend = cubePrefab.GetComponentInChildren<Renderer>();
+            rend = _cubePrefab.GetComponentInChildren<Renderer>();
             if (rend != null)
                 return rend.bounds.size.x;
         }
         return 1f;
     }
 
-    // Public methods to access grid data
+    // Public methods to access _grid data
     public Node GetNode(int row, int col)
     {
         if (row >= 0 && row < gridHeight && col >= 0 && col < gridWidth)
-            return grid[row, col];
+            return _grid[row, col];
         return null;
     }
 
@@ -303,7 +303,7 @@ public class GridManager : MonoBehaviour
 
     public Node[,] GetGrid()
     {
-        return grid;
+        return _grid;
     }
 
     public void CombineMeshes(GameObject parent)

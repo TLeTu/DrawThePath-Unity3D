@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 public class InputController : MonoBehaviour
 {
-    public PlayerController playerController; // Reference to PlayerController for movement
+    [SerializeField] private PlayerController playerController; // Reference to PlayerController for movement
 
-    void Update()
+    private void Update()
     {
         // Mouse input
         if (Input.GetMouseButtonDown(0))
@@ -28,7 +28,7 @@ public class InputController : MonoBehaviour
     }
 
     // Attempts to select a tile at the given screen position
-    void TrySelectTile(Vector2 screenPosition)
+    private void TrySelectTile(Vector2 screenPosition)
     {
         Debug.Log($"Trying to select tile at screen position: {screenPosition}");
         Ray ray = Camera.main.ScreenPointToRay(screenPosition);

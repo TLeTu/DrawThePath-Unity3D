@@ -5,10 +5,8 @@ public class PlayerController : MonoBehaviour
 {
     [SerializeField] private float _moveSpeed = 5f;
 
-    [SerializeField] private PlayerPathVisualizer pathVisualizer;
+    [SerializeField] private PlayerPathVisualizer _pathVisualizer;
     private List<Vector3> _currentPathWorldPositions = null;
-
-
 
     private Vector3? _moveTarget = null;
     private Queue<Vector3> _pathQueue = null;
@@ -42,9 +40,9 @@ public class PlayerController : MonoBehaviour
                 else
                 {
                     // Path finished, hide path visualizer
-                    if (pathVisualizer != null)
+                    if (_pathVisualizer != null)
                     {
-                        pathVisualizer.HidePath();
+                        _pathVisualizer.HidePath();
                     }
                     _currentPathWorldPositions = null;
                 }
@@ -68,9 +66,9 @@ public class PlayerController : MonoBehaviour
             _currentPathWorldPositions.Add(new Vector3(pos.x, pos.y, pos.z)); // Slightly above ground
         }
         // Show path visualizer
-        if (pathVisualizer != null && _currentPathWorldPositions.Count > 1)
+        if (_pathVisualizer != null && _currentPathWorldPositions.Count > 1)
         {
-            pathVisualizer.ShowPath(_currentPathWorldPositions);
+            _pathVisualizer.ShowPath(_currentPathWorldPositions);
         }
         // Start moving to the first point
         if (_pathQueue.Count > 0)
@@ -108,9 +106,9 @@ public class PlayerController : MonoBehaviour
             // stop the current path
             _moveTarget = null;
             _pathQueue = null;
-            if (pathVisualizer != null)
+            if (_pathVisualizer != null)
             {
-                pathVisualizer.HidePath();
+                _pathVisualizer.HidePath();
             }
 
         }
@@ -119,9 +117,9 @@ public class PlayerController : MonoBehaviour
     {
         _moveTarget = null;
         _pathQueue = null;
-        if (pathVisualizer != null)
+        if (_pathVisualizer != null)
         {
-            pathVisualizer.HidePath();
+            _pathVisualizer.HidePath();
         }
         // Disable the player object
         gameObject.SetActive(false);

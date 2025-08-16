@@ -6,6 +6,7 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private string _levelsFolderName;
     [SerializeField] private PlayerController _playerController;
     private Vector3 _playerSpawnPosition;
+    private Vector3 _endPosition;
 
     private void Awake()
     {
@@ -31,6 +32,7 @@ public class LevelManager : MonoBehaviour
         {
             GridManager.Instance.InitializeGrid(levelData.width, levelData.height, levelData.tiles);
             _playerSpawnPosition = GridManager.Instance.GridToWorld(new Vector2Int(levelData.startTileX, levelData.startTileY));
+            _endPosition = GridManager.Instance.GridToWorld(new Vector2Int(levelData.endTileX, levelData.endTileY));
             if (_playerController != null)
             {
                 _playerController.SpawnPlayer(_playerSpawnPosition);
