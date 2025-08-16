@@ -28,6 +28,14 @@ public class PlayerController : MonoBehaviour
         {
             Vector3 currentPosition = transform.position;
             Vector3 targetXZ = _moveTarget.Value;
+            Vector3 moveDirection = (targetXZ - currentPosition);
+            moveDirection.y = 0f;
+            if (moveDirection.sqrMagnitude > 0.0001f)
+            {
+                // Rotate to face the direction of movement
+                Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 0.2f);
+            }
             if (Vector3.Distance(currentPosition, targetXZ) > 0.01f)
             {
                 transform.position = Vector3.MoveTowards(currentPosition, targetXZ, _moveSpeed * Time.deltaTime);

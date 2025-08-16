@@ -70,10 +70,7 @@ public class GridManager : MonoBehaviour
             }
         }
         GenerateGrid();
-        if (_groundGrid != null)
-        {
-            CombineMeshes(_groundGrid);
-        }
+
     }
 
     public void GenerateGrid()
@@ -145,7 +142,7 @@ public class GridManager : MonoBehaviour
                 if (isWall && _obstaclePrefab != null)
                 {
                     // Calculate obstacle y position, it should be the _groundGrid's y position + half the tilesize + half the obstacle prefab object size
-                    float obstacleY = _groundGrid.transform.position.y + cubeSize / 2f + (_obstaclePrefab.GetComponent<Renderer>()?.bounds.size.y ?? 0f) / 2f;
+                    float obstacleY = _groundGrid.transform.position.y + cubeSize / 2f;
                     Vector3 obstaclePosition = new Vector3(x, obstacleY, z);
                     GameObject obstacle;
                     if (_obstaclePool.Count > 0)
@@ -196,15 +193,6 @@ public class GridManager : MonoBehaviour
                             obstacle.transform.SetParent(_obstaclePoolParent.transform);
                         }
                     }
-                }
-            }
-            // Destroy the combined mesh (leftover children that are not pooled cubes)
-            if (_groundGrid != null)
-            {
-                foreach (Transform child in _groundGrid.transform)
-                {
-                    if (!child.name.StartsWith("Cube ("))
-                        Destroy(child.gameObject);
                 }
             }
             _grid = null;
@@ -306,65 +294,5 @@ public class GridManager : MonoBehaviour
         return _grid;
     }
 
-    public void CombineMeshes(GameObject parent)
-    {
-        List<CombineInstance> combineList = new List<CombineInstance>();
-        Material firstMaterial = null;
-        string firstTag = "Untagged";
-        bool foundMaterial = false;
-        List<GameObject> cubesToDisable = new List<GameObject>();
-
-        // Iterate over all child cubes of the input parent
-        foreach (Transform child in parent.transform)
-        {
-            MeshFilter mf = child.GetComponent<MeshFilter>();
-            MeshRenderer mr = child.GetComponent<MeshRenderer>();
-            if (mf == null || mr == null || mf.sharedMesh == null)
-                continue;
-
-            CombineInstance ci = new CombineInstance();
-            ci.mesh = mf.sharedMesh;
-            ci.subMeshIndex = 0;
-            ci.transform = child.localToWorldMatrix;
-            combineList.Add(ci);
-
-            if (!foundMaterial && mr.sharedMaterial != null)
-            {
-                firstMaterial = mr.sharedMaterial;
-                firstTag = child.tag;
-                foundMaterial = true;
-            }
-            cubesToDisable.Add(child.gameObject);
-        }
-
-        if (combineList.Count > 0 && firstMaterial != null)
-        {
-            GameObject combinedObj = new GameObject($"Combined_{firstMaterial.name}");
-            combinedObj.transform.SetParent(parent.transform, false);
-            combinedObj.isStatic = true;
-
-            Mesh combinedMesh = new Mesh();
-            combinedMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32; // Support large meshes
-            combinedMesh.CombineMeshes(combineList.ToArray(), true, true);
-
-            MeshFilter mf = combinedObj.AddComponent<MeshFilter>();
-            mf.sharedMesh = combinedMesh;
-
-            MeshRenderer mr = combinedObj.AddComponent<MeshRenderer>();
-            mr.sharedMaterial = firstMaterial;
-
-            // Add a MeshCollider for click/touch detection
-            MeshCollider meshCol = combinedObj.AddComponent<MeshCollider>();
-            meshCol.sharedMesh = combinedMesh;
-
-            // Set the tag to match the cubes' tag
-            combinedObj.tag = firstTag;
-        }
-
-        // Disable original cubes
-        foreach (var go in cubesToDisable)
-        {
-            go.SetActive(false);
-        }
-    }
+    
 }
