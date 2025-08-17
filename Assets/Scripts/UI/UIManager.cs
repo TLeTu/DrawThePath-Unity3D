@@ -122,48 +122,131 @@ public class UIManager : MonoBehaviour
         return t;
     }
 
-    private Button CreateButton(Transform parent, string label, Action onClick)
+    private Button CreateButton(Transform parent, string label, Action onClick, ButtonStyle style = ButtonStyle.Default)
     {
         var go = new GameObject("Button", typeof(Image), typeof(Button));
         go.transform.SetParent(parent, false);
         var img = go.GetComponent<Image>();
-        img.color = new Color(0.15f, 0.15f, 0.15f, 0.95f);
         var btn = go.GetComponent<Button>();
         btn.targetGraphic = img;
         btn.onClick.AddListener(() => onClick?.Invoke());
 
-        // Ensure layout groups give the button enough space
-        var le = go.GetComponent<LayoutElement>() ?? go.AddComponent<LayoutElement>();
-        le.preferredWidth = 400;
-        le.preferredHeight = 64; // compact default
-        le.minHeight = 44;
+        // Apply style-specific properties
+        Vector2 buttonSize;
+        Color normalColor, highlightColor;
+        int fontSize;
 
-        var text = CreateText(go.transform, label, 28);
+        switch (style)
+        {
+            case ButtonStyle.MainMenu:
+                buttonSize = new Vector2(320, 70);
+                normalColor = new Color(0.2f, 0.6f, 0.9f, 0.9f); // Nice blue
+                highlightColor = new Color(0.3f, 0.7f, 1f, 1f);
+                fontSize = 32;
+                break;
+            case ButtonStyle.Small:
+                buttonSize = new Vector2(160, 50);
+                normalColor = new Color(0.25f, 0.25f, 0.25f, 0.9f);
+                highlightColor = new Color(0.35f, 0.35f, 0.35f, 1f);
+                fontSize = 24;
+                break;
+            case ButtonStyle.Level:
+                buttonSize = new Vector2(280, 50);
+                normalColor = new Color(0.15f, 0.7f, 0.4f, 0.9f); // Green
+                highlightColor = new Color(0.2f, 0.8f, 0.5f, 1f);
+                fontSize = 26;
+                break;
+            case ButtonStyle.Locked:
+                buttonSize = new Vector2(280, 50);
+                normalColor = new Color(0.4f, 0.2f, 0.2f, 0.8f); // Dark red
+                highlightColor = new Color(0.4f, 0.2f, 0.2f, 0.8f);
+                fontSize = 26;
+                break;
+            default:
+                buttonSize = new Vector2(280, 60);
+                normalColor = new Color(0.25f, 0.25f, 0.25f, 0.9f);
+                highlightColor = new Color(0.35f, 0.35f, 0.35f, 1f);
+                fontSize = 28;
+                break;
+        }
+
+        img.color = normalColor;
+        
+        // Add rounded corners effect with shadow
+        var shadow = go.AddComponent<Shadow>();
+        shadow.effectColor = new Color(0, 0, 0, 0.5f);
+        shadow.effectDistance = new Vector2(2, -2);
+
+        // Set up color transitions
+        var colors = btn.colors;
+        colors.normalColor = normalColor;
+        colors.highlightedColor = highlightColor;
+        colors.pressedColor = new Color(normalColor.r * 0.8f, normalColor.g * 0.8f, normalColor.b * 0.8f, normalColor.a);
+        colors.disabledColor = new Color(0.3f, 0.3f, 0.3f, 0.6f);
+        colors.colorMultiplier = 1f;
+        colors.fadeDuration = 0.15f;
+        btn.colors = colors;
+
+        // Layout element
+        var le = go.GetComponent<LayoutElement>() ?? go.AddComponent<LayoutElement>();
+        le.preferredWidth = buttonSize.x;
+        le.preferredHeight = buttonSize.y;
+        le.minHeight = buttonSize.y * 0.8f;
+
+        var text = CreateText(go.transform, label, fontSize);
         text.color = Color.white;
         text.alignment = TextAnchor.MiddleCenter;
-        text.raycastTarget = false; // let button receive clicks
+        text.raycastTarget = false;
         text.rectTransform.anchorMin = Vector2.zero;
         text.rectTransform.anchorMax = Vector2.one;
-        text.rectTransform.offsetMin = Vector2.zero;
-        text.rectTransform.offsetMax = Vector2.zero;
+        text.rectTransform.offsetMin = new Vector2(8, 4);
+        text.rectTransform.offsetMax = new Vector2(-8, -4);
 
         var rt = go.GetComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(400, 64);
+        rt.sizeDelta = buttonSize;
         return btn;
+    }
+
+    private enum ButtonStyle
+    {
+        Default,
+        MainMenu,
+        Small,
+        Level,
+        Locked
     }
 
     private void BuildMainMenu()
     {
         _mainMenuPanel = CreateFullPanel("MainMenu");
+        
+        // Add gradient background
+        var bg = _mainMenuPanel.gameObject.AddComponent<Image>();
+        bg.color = new Color(0.05f, 0.1f, 0.2f, 0.95f); // Dark blue gradient feel
+        
         var layout = _mainMenuPanel.gameObject.AddComponent<VerticalLayoutGroup>();
         layout.childAlignment = TextAnchor.MiddleCenter;
-        layout.spacing = 24;
-        layout.padding = new RectOffset(20, 20, 20, 20);
+        layout.spacing = 40;
+        layout.padding = new RectOffset(60, 60, 120, 120);
 
-        var title = CreateText(_mainMenuPanel, "Draw The Path", 64);
+        // Title with better styling
+        var title = CreateText(_mainMenuPanel, "Draw The Path", 72);
         title.rectTransform.sizeDelta = new Vector2(800, 120);
+        title.color = new Color(0.9f, 0.95f, 1f, 1f); // Slightly blue-tinted white
+        title.fontStyle = FontStyle.Bold;
+        
+        // Add title shadow
+        var titleShadow = title.gameObject.AddComponent<Shadow>();
+        titleShadow.effectColor = new Color(0, 0, 0, 0.7f);
+        titleShadow.effectDistance = new Vector2(3, -3);
 
-        CreateButton(_mainMenuPanel, "Play", ShowLevelsMenu);
+        // Spacer
+        var spacer = new GameObject("Spacer", typeof(RectTransform));
+        spacer.transform.SetParent(_mainMenuPanel, false);
+        var spacerRT = spacer.GetComponent<RectTransform>();
+        spacerRT.sizeDelta = new Vector2(0, 60);
+
+        CreateButton(_mainMenuPanel, "Play", ShowLevelsMenu, ButtonStyle.MainMenu);
 
         HidePanel(_mainMenuPanel);
     }
@@ -171,6 +254,10 @@ public class UIManager : MonoBehaviour
     private void BuildLevelsMenu()
     {
         _levelsPanel = CreateFullPanel("LevelsMenu");
+        
+        // Add background
+        var bg = _levelsPanel.gameObject.AddComponent<Image>();
+        bg.color = new Color(0.08f, 0.12f, 0.18f, 0.95f);
 
         // Header area
         var header = new GameObject("Header", typeof(RectTransform));
@@ -184,30 +271,32 @@ public class UIManager : MonoBehaviour
 
         var headerLayout = header.AddComponent<HorizontalLayoutGroup>();
         headerLayout.childAlignment = TextAnchor.MiddleCenter;
-        headerLayout.padding = new RectOffset(20, 20, 20, 20);
-        headerLayout.spacing = 20;
+        headerLayout.padding = new RectOffset(40, 40, 30, 30);
+        headerLayout.spacing = 40;
 
-        var title = CreateText(header.transform, "Select Level", 48);
+        var title = CreateText(header.transform, "Select Level", 52);
         title.rectTransform.sizeDelta = new Vector2(600, 100);
+        title.color = new Color(0.9f, 0.95f, 1f, 1f);
+        title.fontStyle = FontStyle.Bold;
+        
+        // Add title shadow
+        var titleShadow = title.gameObject.AddComponent<Shadow>();
+        titleShadow.effectColor = new Color(0, 0, 0, 0.6f);
+        titleShadow.effectDistance = new Vector2(2, -2);
 
-        var backBtn = CreateButton(header.transform, "Back", ShowMainMenu);
-        // Prefer explicit layout sizing in header
-        var backLE = backBtn.GetComponent<LayoutElement>();
-        if (backLE != null)
-        {
-            backLE.preferredWidth = 240;
-            backLE.preferredHeight = 70;
-        }
-        backBtn.GetComponent<RectTransform>().sizeDelta = new Vector2(240, 70);
+        var backBtn = CreateButton(header.transform, "Back", ShowMainMenu, ButtonStyle.Small);
 
-        // Scroll area
+        // Scroll area with better margins
         var scrollGO = new GameObject("ScrollView", typeof(Image), typeof(Mask), typeof(ScrollRect));
         scrollGO.transform.SetParent(_levelsPanel, false);
         var scrollRT = scrollGO.GetComponent<RectTransform>();
         scrollRT.anchorMin = new Vector2(0, 0);
         scrollRT.anchorMax = new Vector2(1, 1);
-        scrollRT.offsetMin = new Vector2(40, 40);
-        scrollRT.offsetMax = new Vector2(-40, -160);
+        scrollRT.offsetMin = new Vector2(60, 60); // More generous margins
+        scrollRT.offsetMax = new Vector2(-60, -160);
+
+        var scrollImg = scrollGO.GetComponent<Image>();
+        scrollImg.color = new Color(0, 0, 0, 0.1f); // Subtle background
 
         var scroll = scrollGO.GetComponent<ScrollRect>();
         scroll.horizontal = false;
@@ -228,29 +317,45 @@ public class UIManager : MonoBehaviour
         contentRT.anchorMax = new Vector2(1, 1);
         contentRT.pivot = new Vector2(0.5f, 1);
         contentRT.anchoredPosition = new Vector2(0, 0);
+        contentRT.offsetMin = new Vector2(0, contentRT.offsetMin.y); // Ensure content doesn't go outside viewport
+        contentRT.offsetMax = new Vector2(0, contentRT.offsetMax.y);
 
         var grid = content.AddComponent<GridLayoutGroup>();
-        grid.cellSize = new Vector2(360, 160); // increased height so title + best + button fit
-        grid.spacing = new Vector2(24, 24);
+        grid.cellSize = new Vector2(320, 180); // Better proportions
+        grid.spacing = new Vector2(30, 30); // More generous spacing
         grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
         grid.constraintCount = 4;
+        grid.padding = new RectOffset(40, 40, 30, 30); // More left/right padding to prevent cutoff
+        grid.childAlignment = TextAnchor.UpperCenter; // Center align the grid items
 
         scroll.content = contentRT;
 
-        // Populate levels on show
         HidePanel(_levelsPanel);
     }
 
     private void BuildGameOver()
     {
         _gameOverPanel = CreateFullPanel("GameOver");
+        
+        // Add background
+        var bg = _gameOverPanel.gameObject.AddComponent<Image>();
+        bg.color = new Color(0.15f, 0.05f, 0.05f, 0.95f); // Dark red tint
+        
         var layout = _gameOverPanel.gameObject.AddComponent<VerticalLayoutGroup>();
         layout.childAlignment = TextAnchor.MiddleCenter;
-        layout.spacing = 24;
-        layout.padding = new RectOffset(20, 20, 20, 20);
+        layout.spacing = 30;
+        layout.padding = new RectOffset(60, 60, 100, 100);
 
-        CreateText(_gameOverPanel, "Game Over", 64);
-        _gameOverScoreText = CreateText(_gameOverPanel, "Score: 0", 36);
+        var title = CreateText(_gameOverPanel, "Game Over", 64);
+        title.color = new Color(1f, 0.6f, 0.6f, 1f); // Light red
+        title.fontStyle = FontStyle.Bold;
+        
+        var titleShadow = title.gameObject.AddComponent<Shadow>();
+        titleShadow.effectColor = new Color(0, 0, 0, 0.8f);
+        titleShadow.effectDistance = new Vector2(3, -3);
+        
+        _gameOverScoreText = CreateText(_gameOverPanel, "Score: 0", 40);
+        _gameOverScoreText.color = new Color(0.9f, 0.9f, 0.9f, 1f);
 
         CreateButton(_gameOverPanel, "Retry", () => { GameManager.Instance.RetryLevel(); ShowInGameHUD(); });
         CreateButton(_gameOverPanel, "Level Select", ShowLevelsMenu);
@@ -261,13 +366,26 @@ public class UIManager : MonoBehaviour
     private void BuildGameWin()
     {
         _gameWinPanel = CreateFullPanel("GameWin");
+        
+        // Add background
+        var bg = _gameWinPanel.gameObject.AddComponent<Image>();
+        bg.color = new Color(0.05f, 0.15f, 0.05f, 0.95f); // Dark green tint
+        
         var layout = _gameWinPanel.gameObject.AddComponent<VerticalLayoutGroup>();
         layout.childAlignment = TextAnchor.MiddleCenter;
-        layout.spacing = 24;
-        layout.padding = new RectOffset(20, 20, 20, 20);
+        layout.spacing = 30;
+        layout.padding = new RectOffset(60, 60, 100, 100);
 
-        CreateText(_gameWinPanel, "Level Complete!", 64);
-        _gameWinScoreText = CreateText(_gameWinPanel, "Score: 0", 36);
+        var title = CreateText(_gameWinPanel, "Level Complete!", 64);
+        title.color = new Color(0.6f, 1f, 0.6f, 1f); // Light green
+        title.fontStyle = FontStyle.Bold;
+        
+        var titleShadow = title.gameObject.AddComponent<Shadow>();
+        titleShadow.effectColor = new Color(0, 0, 0, 0.8f);
+        titleShadow.effectDistance = new Vector2(3, -3);
+        
+        _gameWinScoreText = CreateText(_gameWinPanel, "Score: 0", 40);
+        _gameWinScoreText.color = new Color(0.9f, 0.9f, 0.9f, 1f);
 
         _nextLevelButton = CreateButton(_gameWinPanel, "Play Next Level", () =>
         {
@@ -285,34 +403,52 @@ public class UIManager : MonoBehaviour
     {
         _inGameHUD = CreateFullPanel("InGameHUD");
 
-        // Back button (top-left)
+        // Back button (top-left) with better styling
         var backBtn = CreateButton(_inGameHUD, "Back", () =>
         {
             if (LevelManager.Instance != null) LevelManager.Instance.EndLevel();
             if (GameManager.Instance != null) GameManager.Instance.IsGameRunning = false;
             ShowLevelsMenu();
-        });
+        }, ButtonStyle.Small);
+        
         var backRT = backBtn.GetComponent<RectTransform>();
         backRT.anchorMin = new Vector2(0, 1);
         backRT.anchorMax = new Vector2(0, 1);
         backRT.pivot = new Vector2(0, 1);
-        backRT.anchoredPosition = new Vector2(20, -20);
-        backRT.sizeDelta = new Vector2(160, 60);
-        var backLE = backBtn.GetComponent<LayoutElement>();
-        if (backLE != null)
-        {
-            backLE.preferredWidth = 160;
-            backLE.preferredHeight = 60;
-        }
+        backRT.anchoredPosition = new Vector2(25, -25);
+        backRT.sizeDelta = new Vector2(140, 55);
 
-        // Timer (top-right)
-        _timerText = CreateText(_inGameHUD, "00:00", 36, TextAnchor.MiddleRight);
+        // Timer (top-right) with better styling
+        _timerText = CreateText(_inGameHUD, "00:00", 40, TextAnchor.MiddleRight);
+        _timerText.color = new Color(1f, 1f, 1f, 0.95f);
+        _timerText.fontStyle = FontStyle.Bold;
+        
+        // Add timer background
+        var timerBG = new GameObject("TimerBG", typeof(Image));
+        timerBG.transform.SetParent(_inGameHUD, false);
+        var timerBGImg = timerBG.GetComponent<Image>();
+        timerBGImg.color = new Color(0, 0, 0, 0.6f);
+        var timerBGRT = timerBG.GetComponent<RectTransform>();
+        timerBGRT.anchorMin = new Vector2(1, 1);
+        timerBGRT.anchorMax = new Vector2(1, 1);
+        timerBGRT.pivot = new Vector2(1, 1);
+        timerBGRT.anchoredPosition = new Vector2(-25, -25);
+        timerBGRT.sizeDelta = new Vector2(140, 55);
+        
+        // Add shadow to timer background
+        var timerBGShadow = timerBG.AddComponent<Shadow>();
+        timerBGShadow.effectColor = new Color(0, 0, 0, 0.5f);
+        timerBGShadow.effectDistance = new Vector2(2, -2);
+        
         var timerRT = _timerText.rectTransform;
         timerRT.anchorMin = new Vector2(1, 1);
         timerRT.anchorMax = new Vector2(1, 1);
         timerRT.pivot = new Vector2(1, 1);
-        timerRT.anchoredPosition = new Vector2(-20, -20);
-        timerRT.sizeDelta = new Vector2(220, 60);
+        timerRT.anchoredPosition = new Vector2(-25, -25);
+        timerRT.sizeDelta = new Vector2(140, 55);
+        
+        // Move timer to front
+        _timerText.transform.SetAsLastSibling();
 
         HidePanel(_inGameHUD);
     }
@@ -403,20 +539,38 @@ public class UIManager : MonoBehaviour
             var item = new GameObject($"Level_{levelIndex}", typeof(Image));
             item.transform.SetParent(content, false);
             var bg = item.GetComponent<Image>();
-            bg.color = new Color(0.08f, 0.08f, 0.08f, 0.9f);
-
-            var layout = item.AddComponent<VerticalLayoutGroup>();
-            layout.childAlignment = TextAnchor.MiddleCenter;
-            layout.spacing = 6;
-            layout.padding = new RectOffset(12, 12, 12, 12);
-
+            
             bool unlocked = GameManager.Instance.IsLevelUnlocked(levelIndex);
             int best = GameManager.Instance.GetBestScore(levelIndex);
 
-            var title = CreateText(item.transform, $"Level {levelIndex}", 28);
+            // Set background color based on unlock status
+            if (unlocked)
+            {
+                bg.color = new Color(0.12f, 0.18f, 0.25f, 0.95f); // Dark blue for unlocked
+            }
+            else
+            {
+                bg.color = new Color(0.15f, 0.1f, 0.1f, 0.9f); // Dark red for locked
+            }
+            
+            // Add subtle border effect
+            var border = item.AddComponent<Outline>();
+            border.effectColor = unlocked ? new Color(0.3f, 0.5f, 0.8f, 0.8f) : new Color(0.5f, 0.2f, 0.2f, 0.6f);
+            border.effectDistance = new Vector2(2, 2);
 
-            var bestText = CreateText(item.transform, $"Best: {best}", 22);
-            bestText.color = new Color(0.9f, 0.9f, 0.9f, 0.9f);
+            var layout = item.AddComponent<VerticalLayoutGroup>();
+            layout.childAlignment = TextAnchor.MiddleCenter;
+            layout.spacing = 8;
+            layout.padding = new RectOffset(15, 15, 15, 15); // More generous padding
+
+            var title = CreateText(item.transform, $"Level {levelIndex + 1}", 30); // Make it 1-indexed for display
+            title.color = unlocked ? new Color(0.9f, 0.95f, 1f, 1f) : new Color(0.7f, 0.7f, 0.7f, 0.8f);
+            title.fontStyle = FontStyle.Bold;
+            title.rectTransform.sizeDelta = new Vector2(280, 40);
+
+            var bestText = CreateText(item.transform, best > 0 ? $"Best: {best}" : "Not completed", 20);
+            bestText.color = unlocked ? new Color(0.7f, 0.9f, 0.7f, 0.9f) : new Color(0.6f, 0.6f, 0.6f, 0.7f);
+            bestText.rectTransform.sizeDelta = new Vector2(280, 30);
 
             var btn = CreateButton(item.transform, unlocked ? "Play" : "Locked", () =>
             {
@@ -426,7 +580,8 @@ public class UIManager : MonoBehaviour
                     GameManager.Instance.NewGame(levelIndex);
                     ShowInGameHUD();
                 }
-            });
+            }, unlocked ? ButtonStyle.Level : ButtonStyle.Locked);
+            
             btn.interactable = unlocked;
             _levelButtons.Add(btn);
         }

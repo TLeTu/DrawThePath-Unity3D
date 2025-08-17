@@ -109,7 +109,7 @@ public class PlayerController : MonoBehaviour
         {
             playerHeight = renderer.bounds.size.y;
         }
-        position.y = tileTopY + playerHeight * 0.5f;
+        position.y = tileTopY;
         Debug.Log($"Spawning player at: {position} (playerHeight={playerHeight})");
         transform.position = position;
         _moveTarget = null;
