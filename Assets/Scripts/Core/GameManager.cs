@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject _gameOverUI;
     [SerializeField] private GameObject _gameWinUI;
     private int _playerLives = 3;
+    private int _currentLevelIndex = 0;
     private IGameState _currentGameState;
 
     private void Awake()
@@ -41,6 +42,7 @@ public class GameManager : MonoBehaviour
         // Reset player lives and other game state
         _playerLives = 3;
         LevelManager.Instance.LoadLevel(_levels[level]);
+        _currentLevelIndex = level;
     }
     public void UponPlayerCollision(GameObject other)
     {

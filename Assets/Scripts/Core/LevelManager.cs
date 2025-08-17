@@ -5,6 +5,7 @@ public class LevelManager : MonoBehaviour
     public static LevelManager Instance { get; private set; }
     [SerializeField] private string _levelsFolderName;
     [SerializeField] private PlayerController _playerController;
+    [SerializeField] private EnemyController _enemyController;
     private Vector3 _playerSpawnPosition;
     private Vector3 _endPosition;
 
@@ -42,6 +43,14 @@ public class LevelManager : MonoBehaviour
                 Debug.LogError("PlayerController is not assigned in LevelManager.");
             }
             GridManager.Instance.SpawnGoal(_endPosition);
+            if (_enemyController != null)
+            {
+                _enemyController.SetPosition(_endPosition, _playerSpawnPosition);
+            }
+            else
+            {
+                Debug.LogError("EnemyController is not assigned in LevelManager.");
+            }
         }
         else
         {
