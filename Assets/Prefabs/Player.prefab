@@ -148,8 +148,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _pathColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  _lineWidth: 0.1
-  _yOffset: 1.1
+  _lineWidth: 5
+  _yOffset: 1.5
 --- !u!143 &5519288823035945662
 CharacterController:
   m_ObjectHideFlags: 0

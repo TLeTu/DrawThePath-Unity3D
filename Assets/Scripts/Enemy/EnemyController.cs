@@ -12,10 +12,15 @@ public class EnemyController : MonoBehaviour
 
     public void SetPosition(Vector3 firstPosition, Vector3 secondPosition)
     {
-        this.transform.position = new Vector3(firstPosition.x, 2f, firstPosition.z);
+        this.transform.position = firstPosition;
         this.firstPosition = firstPosition;
         this.secondPosition = secondPosition;
         SetPathTo(secondPosition);
+    }
+    public void RemovePath()
+    {
+        currentPath = null;
+        pathIndex = 0;
     }
 
     private void SetPathTo(Vector3 target)

@@ -14,6 +14,12 @@ public class GameManager : MonoBehaviour
     private int _currentLevelIndex = 0;
     private IGameState _currentGameState;
 
+    // Timer and scoring system
+    [SerializeField] private float _maxTime = 120f; // seconds
+    private float _timer;
+    private bool _timerRunning = false;
+    private int _score = 0;
+
     private void Awake()
     {
         if (Instance == null)
@@ -32,17 +38,55 @@ public class GameManager : MonoBehaviour
         // Initialize the game state, load the first level, etc.
         // NewGame();
         ChangeGameState(new MainMenuState());
+        _timer = _maxTime;
+        _timerRunning = false;
     }
     private void Update()
     {
         _currentGameState?.Update();
+        if (_timerRunning && IsGameRunning)
+        {
+            _timer -= Time.deltaTime;
+            if (_timer <= 0f)
+            {
+                _timer = 0f;
+                _timerRunning = false;
+                // Optionally, handle time out (e.g., game over)
+                Debug.Log("Time's up!");
+                LevelManager.Instance.EndLevel();
+                ChangeGameState(new GameOverState());
+            }
+        }
     }
     public void NewGame(int level)
     {
-        // Reset player lives and other game state
         _playerLives = 3;
-        LevelManager.Instance.LoadLevel(_levels[level]);
-        _currentLevelIndex = level;
+        _timer = _maxTime;
+        _timerRunning = true;
+        if (level < 0)
+        {
+            LevelManager.Instance.LoadLevel(_levels[_currentLevelIndex]);
+        }
+        else
+        {
+            if (level < 0 || level >= _levels.Length)
+            {
+                Debug.LogError("Invalid level index.");
+                return;
+            }
+            LevelManager.Instance.LoadLevel(_levels[level]);
+            _currentLevelIndex = level;
+        }
+        _score = 0;
+    }
+    public TextAsset GetCurrentLevel()
+    {
+        if (_currentLevelIndex < 0 || _currentLevelIndex >= _levels.Length)
+        {
+            Debug.LogError("Invalid level index.");
+            return null;
+        }
+        return _levels[_currentLevelIndex];
     }
     public void UponPlayerCollision(GameObject other)
     {
@@ -52,7 +96,7 @@ public class GameManager : MonoBehaviour
             if (_playerLives <= 0)
             {
                 Debug.Log("Game Over");
-                // Handle game over logic, e.g., show game over screen, reset lives, etc.
+                _timerRunning = false;
                 LevelManager.Instance.EndLevel();
                 ChangeGameState(new GameOverState());
             }
@@ -66,9 +110,28 @@ public class GameManager : MonoBehaviour
         else if (other.CompareTag("Goal"))
         {
             Debug.Log("Player reached the goal!");
+            _timerRunning = false;
+            CalculateScore();
+            Debug.Log($"Score: {_score}");
             LevelManager.Instance.EndLevel();
             ChangeGameState(new GameWinState());
         }
+    }
+
+    private void CalculateScore()
+    {
+        // Example: score is proportional to time left
+        _score = Mathf.RoundToInt(_timer * 10); // 10 points per second left
+    }
+
+    public int GetScore()
+    {
+        return _score;
+    }
+
+    public float GetTimeLeft()
+    {
+        return _timer;
     }
     public void ShowMainMenu()
     {

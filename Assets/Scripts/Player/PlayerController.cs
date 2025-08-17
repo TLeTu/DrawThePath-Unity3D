@@ -103,6 +103,8 @@ public class PlayerController : MonoBehaviour
         transform.position = position;
         _moveTarget = null;
         _pathQueue = null;
+        gameObject.SetActive(true);
+
     }
     // ontriggerenter if the object collides with tag "Obstacle" respawn the player
     private void OnTriggerEnter(Collider other)
