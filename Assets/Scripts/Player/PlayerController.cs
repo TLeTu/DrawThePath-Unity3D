@@ -6,6 +6,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float _moveSpeed = 5f;
 
     [SerializeField] private PlayerPathVisualizer _pathVisualizer;
+    [SerializeField] private Animator _animator;
     private List<Vector3> _currentPathWorldPositions = null;
 
     private Vector3? _moveTarget = null;
@@ -22,8 +23,11 @@ public class PlayerController : MonoBehaviour
     {
         if (GameManager.Instance == null || !GameManager.Instance.IsGameRunning)
         {
+            if (_animator != null) _animator.SetBool("isMoving", false);
             return; // Ignore input if the game is not running
         }
+
+        bool isActuallyMoving = false;
         if (_moveTarget.HasValue)
         {
             Vector3 currentPosition = transform.position;
@@ -36,21 +40,24 @@ public class PlayerController : MonoBehaviour
                 Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 0.2f);
             }
-            if (Vector3.Distance(currentPosition, targetXZ) > 0.01f)
+            float stopDistance = 0.05f; // Slightly larger buffer to avoid float issues
+            if (Vector3.Distance(currentPosition, targetXZ) > stopDistance)
             {
                 transform.position = Vector3.MoveTowards(currentPosition, targetXZ, _moveSpeed * Time.deltaTime);
+                isActuallyMoving = true;
             }
             else
             {
                 transform.position = targetXZ;
-                _moveTarget = null;
                 // If following a path, move to next point
                 if (_pathQueue != null && _pathQueue.Count > 0)
                 {
                     _moveTarget = _pathQueue.Dequeue();
+                    isActuallyMoving = true; // Will move to next point next frame
                 }
                 else
                 {
+                    _moveTarget = null;
                     // Path finished, hide path visualizer
                     if (_pathVisualizer != null)
                     {
@@ -59,6 +66,10 @@ public class PlayerController : MonoBehaviour
                     _currentPathWorldPositions = null;
                 }
             }
+        }
+        if (_animator != null)
+        {
+            _animator.SetBool("isMoving", isActuallyMoving);
         }
     }
 

@@ -715,6 +715,10 @@ PrefabInstance:
       propertyPath: _lineWidth
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2730697384010398002, guid: db7480089c161184693ac14d4e6e6761, type: 3}
+      propertyPath: _animator
+      value: 
+      objectReference: {fileID: 1347620313}
     - target: {fileID: 7185818404079241027, guid: db7480089c161184693ac14d4e6e6761, type: 3}
       propertyPath: m_Name
       value: Player
@@ -1970,6 +1974,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1332365771}
   m_CullTransparentMesh: 1
+--- !u!95 &1347620313 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 7525389746804037158, guid: db7480089c161184693ac14d4e6e6761, type: 3}
+  m_PrefabInstance: {fileID: 388762707}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1370970658
 GameObject:
   m_ObjectHideFlags: 0
