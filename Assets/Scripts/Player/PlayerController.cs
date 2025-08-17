@@ -121,6 +121,13 @@ public class PlayerController : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         Debug.Log("Player collided with an obstacle, respawning...");
+        
+        // Play collision sound effect
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayPlayerCollisionSFX();
+        }
+        
         //call the game manager to respawn the player
         if (GameManager.Instance != null)
         {

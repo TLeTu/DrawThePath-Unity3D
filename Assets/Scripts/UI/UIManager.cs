@@ -130,6 +130,13 @@ public class UIManager : MonoBehaviour
         var btn = go.GetComponent<Button>();
         btn.targetGraphic = img;
         btn.onClick.AddListener(() => onClick?.Invoke());
+        // Add button click sound effect
+        btn.onClick.AddListener(() => {
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayButtonClickSFX();
+            }
+        });
 
         // Apply style-specific properties
         Vector2 buttonSize;
@@ -488,18 +495,33 @@ public class UIManager : MonoBehaviour
     public void ShowMainMenu()
     {
         ShowOnly(_mainMenuPanel);
+        // Play main menu music
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayMainMenuMusic();
+        }
     }
 
     public void ShowLevelsMenu()
     {
         RebuildLevelsGrid();
         ShowOnly(_levelsPanel);
+        // Play level select music (or main menu music if level select music is not set)
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayLevelSelectMusic();
+        }
     }
 
     public void ShowGameOver()
     {
         if (_gameOverScoreText) _gameOverScoreText.text = $"Score: {GameManager.Instance.GetScore()}";
         ShowOnly(_gameOverPanel);
+        // Play game over music
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayGameOverMusic();
+        }
     }
 
     public void ShowGameWin()
@@ -512,11 +534,21 @@ public class UIManager : MonoBehaviour
             _nextLevelButton.interactable = canPlayNext;
         }
         ShowOnly(_gameWinPanel);
+        // Play victory music
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayVictoryMusic();
+        }
     }
 
     public void ShowInGameHUD()
     {
         ShowOnly(_inGameHUD);
+        // Play gameplay music
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayGameplayMusic();
+        }
     }
 
     private void RebuildLevelsGrid()
