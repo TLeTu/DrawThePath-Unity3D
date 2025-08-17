@@ -157,6 +157,24 @@ public class GameManager : MonoBehaviour
             if (UIManager.Instance != null) UIManager.Instance.ShowGameWin();
             IsGameRunning = false;
         }
+        else if (other.CompareTag("Enemy"))
+        {
+            Debug.Log("Player collided with an enemy, respawning...");
+            _playerLives--;
+            if (_playerLives <= 0)
+            {
+                Debug.Log("Game Over");
+                _timerRunning = false;
+                IsGameRunning = false;
+                if (LevelManager.Instance != null) LevelManager.Instance.EndLevel();
+                if (UIManager.Instance != null) UIManager.Instance.ShowGameOver();
+            }
+            else
+            {
+                Debug.Log($"Player died. Lives remaining: {_playerLives}");
+                LevelManager.Instance.RespawnPlayer();
+            }
+        }
     }
 
     private void CalculateScore()
