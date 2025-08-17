@@ -71,6 +71,22 @@ public class GridManager : MonoBehaviour
             }
         }
         GenerateGrid();
+        AdjustCameraToGrid();
+    }
+    // Adjusts the main camera's orthographic size and position to fit the grid
+    public void AdjustCameraToGrid()
+    {
+        Camera cam = Camera.main;
+        if (cam == null || !cam.orthographic) return;
+
+        float tileSize = GetTileSize();
+        float gridWorldWidth = gridWidth * tileSize;
+        float gridWorldHeight = gridHeight * tileSize;
+
+        float aspect = cam.aspect;
+        float sizeBasedOnHeight = gridWorldHeight / 2f + 1f;
+        float sizeBasedOnWidth = gridWorldWidth / (2f * aspect) + 1f;
+        cam.orthographicSize = Mathf.Max(sizeBasedOnHeight, sizeBasedOnWidth);
 
     }
     public void SpawnGoal(Vector3 goalPosition)

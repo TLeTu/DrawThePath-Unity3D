@@ -4,7 +4,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     // List of TextAssets for levels, can be populated in the inspector
-    public bool IsGameRunning => _currentGameState is InGameState;
+    public bool IsGameRunning = false;
     [SerializeField] private TextAsset[] _levels;
     [SerializeField] private GameObject _mainMenuUI;
     [SerializeField] private GameObject _levelsMenuUI;
@@ -12,7 +12,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject _gameWinUI;
     private int _playerLives = 3;
     private int _currentLevelIndex = 0;
-    private IGameState _currentGameState;
+    // Removed GameState system
+    // private IGameState _currentGameState;
+    // Track progress (highest unlocked level + best scores)
+    private PlayerProgress _progress;
 
     // Timer and scoring system
     [SerializeField] private float _maxTime = 120f; // seconds
@@ -32,18 +35,29 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
+        // Auto-load levels if none are assigned in the inspector
+        AutoLoadLevelsIfEmpty();
+
+        // Load player progress and ensure lists are sized to number of levels
+        _progress = SaveSystem.Load();
+        SaveSystem.EnsureCapacity(_progress, _levels != null ? _levels.Length : 0);
     }
     private void Start()
     {
         // Initialize the game state, load the first level, etc.
-        // NewGame();
-        ChangeGameState(new MainMenuState());
         _timer = _maxTime;
         _timerRunning = false;
+
+        // Show main menu if runtime UI exists
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowMainMenu();
+        }
     }
     private void Update()
     {
-        _currentGameState?.Update();
+        // Removed _currentGameState?.Update();
         if (_timerRunning && IsGameRunning)
         {
             _timer -= Time.deltaTime;
@@ -51,27 +65,47 @@ public class GameManager : MonoBehaviour
             {
                 _timer = 0f;
                 _timerRunning = false;
-                // Optionally, handle time out (e.g., game over)
+                IsGameRunning = false;
+                // Handle time out -> game over
                 Debug.Log("Time's up!");
-                LevelManager.Instance.EndLevel();
-                ChangeGameState(new GameOverState());
+                if (LevelManager.Instance != null) LevelManager.Instance.EndLevel();
+                if (UIManager.Instance != null) UIManager.Instance.ShowGameOver();
             }
         }
     }
     public void NewGame(int level)
     {
+        IsGameRunning = true;
+        // Ensure we have levels available
+        if (_levels == null || _levels.Length == 0)
+        {
+            Debug.LogError("No levels available. Assign _levels in the inspector or place TextAssets under Assets/Resources/Levels.");
+            return;
+        }
+
         _playerLives = 3;
         _timer = _maxTime;
         _timerRunning = true;
         if (level < 0)
         {
+            if (_currentLevelIndex < 0 || _currentLevelIndex >= _levels.Length)
+            {
+                Debug.LogError($"Current level index {_currentLevelIndex} is out of range (0..{_levels.Length - 1}).");
+                return;
+            }
             LevelManager.Instance.LoadLevel(_levels[_currentLevelIndex]);
         }
         else
         {
             if (level < 0 || level >= _levels.Length)
             {
-                Debug.LogError("Invalid level index.");
+                Debug.LogError($"Invalid level index {level}. Levels available: {_levels.Length}");
+                return;
+            }
+            // Enforce locked levels
+            if (!IsLevelUnlocked(level))
+            {
+                Debug.LogWarning($"Level {level} is locked. Highest unlocked: {GetHighestUnlockedLevel()}");
                 return;
             }
             LevelManager.Instance.LoadLevel(_levels[level]);
@@ -97,8 +131,9 @@ public class GameManager : MonoBehaviour
             {
                 Debug.Log("Game Over");
                 _timerRunning = false;
-                LevelManager.Instance.EndLevel();
-                ChangeGameState(new GameOverState());
+                IsGameRunning = false;
+                if (LevelManager.Instance != null) LevelManager.Instance.EndLevel();
+                if (UIManager.Instance != null) UIManager.Instance.ShowGameOver();
             }
             else
             {
@@ -113,8 +148,14 @@ public class GameManager : MonoBehaviour
             _timerRunning = false;
             CalculateScore();
             Debug.Log($"Score: {_score}");
-            LevelManager.Instance.EndLevel();
-            ChangeGameState(new GameWinState());
+
+            // Save progress: best score for this level and unlock next
+            SaveSystem.UpdateLevelResult(_progress, _currentLevelIndex, _score, _levels != null ? _levels.Length : 0);
+            SaveSystem.Save(_progress);
+
+            if (LevelManager.Instance != null) LevelManager.Instance.EndLevel();
+            if (UIManager.Instance != null) UIManager.Instance.ShowGameWin();
+            IsGameRunning = false;
         }
     }
 
@@ -133,6 +174,61 @@ public class GameManager : MonoBehaviour
     {
         return _timer;
     }
+
+    public float GetMaxTime()
+    {
+        return _maxTime;
+    }
+
+    // --- Progress helpers ---
+    public bool IsLevelUnlocked(int levelIndex)
+    {
+        if (_levels == null) return false;
+        if (levelIndex < 0 || levelIndex >= _levels.Length) return false;
+        if (_progress == null) return levelIndex == 0; // default: only level 0 unlocked
+        return levelIndex <= _progress.highestUnlockedLevel;
+    }
+
+    public int GetBestScore(int levelIndex)
+    {
+        if (_levels == null) return 0;
+        if (_progress == null) return 0;
+        SaveSystem.EnsureCapacity(_progress, _levels.Length);
+        if (levelIndex < 0 || levelIndex >= _progress.bestScores.Count) return 0;
+        return _progress.bestScores[levelIndex];
+    }
+
+    public int GetHighestUnlockedLevel()
+    {
+        return _progress != null ? _progress.highestUnlockedLevel : 0;
+    }
+
+    public void ResetProgress()
+    {
+        SaveSystem.ResetAll();
+        _progress = new PlayerProgress();
+        SaveSystem.EnsureCapacity(_progress, _levels != null ? _levels.Length : 0);
+    }
+
+    public int GetLevelsCount() => _levels != null ? _levels.Length : 0;
+    public int GetCurrentLevelIndex() => _currentLevelIndex;
+
+    public void RetryLevel()
+    {
+        NewGame(_currentLevelIndex);
+    }
+
+    public bool TryPlayNextLevel()
+    {
+        int next = _currentLevelIndex + 1;
+        if (next < GetLevelsCount() && IsLevelUnlocked(next))
+        {
+            NewGame(next);
+            return true;
+        }
+        return false;
+    }
+
     public void ShowMainMenu()
     {
         if (_mainMenuUI != null)
@@ -221,13 +317,15 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("Game Win UI is not assigned in GameManager.");
         }
     }
-    public void ChangeGameState(IGameState newState)
+
+    // Auto-load all level TextAssets from Resources/Levels if not assigned in inspector
+    private void AutoLoadLevelsIfEmpty()
     {
-        if (_currentGameState != null)
+        if (_levels == null || _levels.Length == 0)
         {
-            _currentGameState.Exit();
+            var loaded = Resources.LoadAll<TextAsset>("Levels");
+            _levels = loaded ?? new TextAsset[0];
+            Debug.Log($"[GameManager] Auto-loaded {_levels.Length} level(s) from Resources/Levels");
         }
-        _currentGameState = newState;
-        _currentGameState.Enter();
     }
 }
