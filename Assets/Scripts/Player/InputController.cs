@@ -1,29 +1,32 @@
 using UnityEngine;
+using UnityEngine.InputSystem; // <-- New Input System
 using System.Collections.Generic;
 
 public class InputController : MonoBehaviour
 {
-    [SerializeField] private PlayerController playerController; // Reference to PlayerController for movement
+    [SerializeField] private PlayerController playerController;
 
     private void Update()
     {
         if (GameManager.Instance == null || !GameManager.Instance.IsGameRunning || playerController.IsDead)
-        {
             return;
-        }
-        // Mouse input: hold to move
-        if (Input.GetMouseButton(0))
+
+        // --- Mouse input (New Input System) ---
+        if (Mouse.current != null && Mouse.current.leftButton.isPressed)
         {
-            TrySelectTile(Input.mousePosition);
+            Vector2 mousePos = Mouse.current.position.ReadValue();
+            TrySelectTile(mousePos);
         }
-        // Touch input: hold to move
-        if (Input.touchCount > 0)
+
+        // --- Touch input (New Input System) ---
+        if (Touchscreen.current != null)
         {
-            foreach (Touch touch in Input.touches)
+            foreach (var touch in Touchscreen.current.touches)
             {
-                if (touch.phase == TouchPhase.Began || touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary)
+                if (touch.press.isPressed)
                 {
-                    TrySelectTile(touch.position);
+                    Vector2 touchPos = touch.position.ReadValue();
+                    TrySelectTile(touchPos);
                 }
             }
         }
@@ -34,12 +37,11 @@ public class InputController : MonoBehaviour
     {
         Debug.Log($"Trying to select tile at screen position: {screenPosition}");
         Ray ray = Camera.main.ScreenPointToRay(screenPosition);
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit))
+        if (Physics.Raycast(ray, out RaycastHit hit))
         {
             Debug.Log($"Hit object: {hit.collider.gameObject.name}");
-            // Check if we hit the grid's collider
-            if (GridManager.Instance != null && hit.collider.gameObject.tag == "Ground")
+
+            if (GridManager.Instance != null && hit.collider.CompareTag("Ground"))
             {
                 Vector2Int targetCoords = GridManager.Instance.WorldToGrid(hit.point);
                 Debug.Log($"Clicked grid cell: Row {targetCoords.x}, Col {targetCoords.y}");
@@ -50,13 +52,13 @@ public class InputController : MonoBehaviour
                 {
                     bool isTargetWalkable = GridManager.Instance.IsWalkable(targetCoords.x, targetCoords.y);
                     List<Node> path = null;
+
                     if (isTargetWalkable)
                     {
                         path = AStarPathfinding.Instance.FindPath(playerController.transform.position, worldPosition);
                     }
                     else
                     {
-                        // Temporarily treat the target tile as walkable
                         var grid = GridManager.Instance.GetGrid();
                         var targetNode = grid[targetCoords.x, targetCoords.y];
                         bool wasWall = targetNode.wall;
@@ -64,14 +66,11 @@ public class InputController : MonoBehaviour
                         path = AStarPathfinding.Instance.FindPath(playerController.transform.position, worldPosition);
                         targetNode.wall = wasWall;
                     }
+
                     if (path != null && path.Count >= 1)
-                    {
                         playerController.FollowPath(path);
-                    }
                     else
-                    {
                         Debug.LogWarning("No path found to target tile.");
-                    }
                 }
             }
         }
