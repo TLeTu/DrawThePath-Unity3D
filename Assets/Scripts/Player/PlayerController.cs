@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 public class PlayerController : MonoBehaviour
 {
+    public bool IsDead = false;
     [SerializeField] private float _moveSpeed = 5f;
 
     [SerializeField] private PlayerPathVisualizer _pathVisualizer;
@@ -23,7 +24,7 @@ public class PlayerController : MonoBehaviour
     {
         if (GameManager.Instance == null || !GameManager.Instance.IsGameRunning)
         {
-            if (_animator != null) _animator.SetBool("isMoving", false);
+            if (_animator != null && _animator.runtimeAnimatorController != null) _animator.SetBool("isMoving", false);
             return; // Ignore input if the game is not running
         }
 
@@ -67,7 +68,7 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
-        if (_animator != null)
+        if (_animator != null && _animator.runtimeAnimatorController != null)
         {
             _animator.SetBool("isMoving", isActuallyMoving);
         }
@@ -103,9 +104,10 @@ public class PlayerController : MonoBehaviour
     {
         // Set the player's y so that the feet are on top of the tile
         // Set the animator trigger Dead to false
-        if (_animator != null)
+        if (_animator != null && _animator.runtimeAnimatorController != null)
         {
             _animator.SetBool("isDead", false);
+            IsDead = false;
         }
         float tileTopY = GridManager.Instance.GetTileSize() * 0.5f;
         float playerHeight = 1f;
@@ -124,9 +126,10 @@ public class PlayerController : MonoBehaviour
     }
     public void PlayDeadAnimation()
     {
-        if (_animator != null)
+        if (_animator != null && _animator.runtimeAnimatorController != null)
         {
             _animator.SetBool("isDead", true);
+            IsDead = true;
         }
     }
     // ontriggerenter if the object collides with tag "Obstacle" respawn the player
@@ -135,7 +138,7 @@ public class PlayerController : MonoBehaviour
         Debug.Log("Player collided with an obstacle, respawning...");
 
         // Play collision sound effect
-        if (AudioManager.Instance != null)
+        if (AudioManager.Instance != null && (other.CompareTag("Obstacle") || other.CompareTag("Enemy")))
         {
             AudioManager.Instance.PlayPlayerCollisionSFX();
         }

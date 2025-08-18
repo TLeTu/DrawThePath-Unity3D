@@ -7,9 +7,9 @@ public class InputController : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance == null || !GameManager.Instance.IsGameRunning)
+        if (GameManager.Instance == null || !GameManager.Instance.IsGameRunning || playerController.IsDead)
         {
-            return; // Ignore input if the game is not running
+            return;
         }
         // Mouse input: hold to move
         if (Input.GetMouseButton(0))

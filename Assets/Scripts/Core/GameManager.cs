@@ -131,6 +131,11 @@ public class GameManager : MonoBehaviour
         }
         else if (other.CompareTag("Goal"))
         {
+            // Play the level completion sound effect
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayLevelCompleteSFX();
+            }
             Debug.Log("Player reached the goal!");
             _timerRunning = false;
             CalculateScore();
