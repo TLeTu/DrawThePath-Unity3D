@@ -11,6 +11,7 @@ public class GridManager : MonoBehaviour
     [SerializeField] private GameObject _cubePrefab;
     [SerializeField] private GameObject _obstacleGrid;
     [SerializeField] private GameObject _obstaclePrefab;
+    [SerializeField] private List<GameObject> _obstaclePrefabs;
     [SerializeField] private GameObject _cubePoolParent;
     [SerializeField] private GameObject _obstaclePoolParent;
     [SerializeField] private GameObject _goalPrefab;
@@ -46,14 +47,35 @@ public class GridManager : MonoBehaviour
             }
         }
         // Initialize the obstacle pool
-        if (_obstaclePoolParent != null && _obstaclePrefab != null)
+        // if (_obstaclePoolParent != null && _obstaclePrefab != null)
+        // {
+        //     for (int i = 0; i < 100; i++) // Pre-populate the pool with 100 obstacles
+        //         {
+        //         GameObject obstacle = Instantiate(_obstaclePrefab);
+        //         obstacle.transform.SetParent(_obstaclePoolParent.transform);
+        //         obstacle.SetActive(false);
+        //         _obstaclePool.Add(obstacle);
+        //     }
+        // }
+        // Initialize the obstacle pool with multiple prefabs which can be used randomly
+        if (_obstaclePoolParent != null && _obstaclePrefabs != null && _obstaclePrefabs.Count > 0)
         {
             for (int i = 0; i < 100; i++) // Pre-populate the pool with 100 obstacles
-                {
-                GameObject obstacle = Instantiate(_obstaclePrefab);
+            {
+                GameObject obstaclePrefab = _obstaclePrefabs[Random.Range(0, _obstaclePrefabs.Count)];
+                GameObject obstacle = Instantiate(obstaclePrefab);
                 obstacle.transform.SetParent(_obstaclePoolParent.transform);
                 obstacle.SetActive(false);
                 _obstaclePool.Add(obstacle);
+            }
+            // Use the fischer-yates shuffle to randomize the obstacle pool
+            for (int i = _obstaclePool.Count - 1; i > 0; i--)
+            {
+                int j = Random.Range(0, i + 1);
+                // Swap the elements
+                GameObject temp = _obstaclePool[i];
+                _obstaclePool[i] = _obstaclePool[j];
+                _obstaclePool[j] = temp;
             }
         }
     }
@@ -173,7 +195,9 @@ public class GridManager : MonoBehaviour
                     }
                     else
                     {
-                        obstacle = Instantiate(_obstaclePrefab, obstaclePosition, Quaternion.identity);
+                        // Randomly select an obstacle prefab from the list
+                        GameObject obstaclePrefab = _obstaclePrefabs[Random.Range(0, _obstaclePrefabs.Count)];
+                        obstacle = Instantiate(obstaclePrefab, obstaclePosition, Quaternion.identity);
                     }
                     // Name obstacle with its logical coordinates
                     obstacle.name = $"Obstacle ({row},{col})";
