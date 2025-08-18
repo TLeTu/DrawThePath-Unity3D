@@ -10,7 +10,6 @@ public class GridManager : MonoBehaviour
     [SerializeField] private GameObject _groundGrid;
     [SerializeField] private GameObject _cubePrefab;
     [SerializeField] private GameObject _obstacleGrid;
-    [SerializeField] private GameObject _obstaclePrefab;
     [SerializeField] private List<GameObject> _obstaclePrefabs;
     [SerializeField] private GameObject _cubePoolParent;
     [SerializeField] private GameObject _obstaclePoolParent;
@@ -180,7 +179,7 @@ public class GridManager : MonoBehaviour
                 // Debug out the row, col and position of the created node
                 Debug.Log($"Created Node at ({row},{col}) - Position: {position}, IsWall: {isWall}");
                 // If isWall is true, instantiate an obstacle
-                if (isWall && _obstaclePrefab != null)
+                if (isWall)
                 {
                     // Calculate obstacle y position, it should be the _groundGrid's y position + half the tilesize + half the obstacle prefab object size
                     float obstacleY = _groundGrid.transform.position.y + cubeSize / 2f;

@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
@@ -126,21 +127,7 @@ public class GameManager : MonoBehaviour
     {
         if (other.CompareTag("Obstacle"))
         {
-            _playerLives--;
-            if (_playerLives <= 0)
-            {
-                Debug.Log("Game Over");
-                _timerRunning = false;
-                IsGameRunning = false;
-                if (LevelManager.Instance != null) LevelManager.Instance.EndLevel();
-                if (UIManager.Instance != null) UIManager.Instance.ShowGameOver();
-            }
-            else
-            {
-                Debug.Log($"Player died. Lives remaining: {_playerLives}");
-                LevelManager.Instance.DestroyObstacle(other);
-                LevelManager.Instance.RespawnPlayer();
-            }
+            StartCoroutine(HandleObstacleCollision(other));
         }
         else if (other.CompareTag("Goal"))
         {
@@ -148,6 +135,7 @@ public class GameManager : MonoBehaviour
             _timerRunning = false;
             CalculateScore();
             Debug.Log($"Score: {_score}");
+
 
             // Save progress: best score for this level and unlock next
             SaveSystem.UpdateLevelResult(_progress, _currentLevelIndex, _score, _levels != null ? _levels.Length : 0);
@@ -159,21 +147,64 @@ public class GameManager : MonoBehaviour
         }
         else if (other.CompareTag("Enemy"))
         {
-            Debug.Log("Player collided with an enemy, respawning...");
-            _playerLives--;
-            if (_playerLives <= 0)
-            {
-                Debug.Log("Game Over");
-                _timerRunning = false;
-                IsGameRunning = false;
-                if (LevelManager.Instance != null) LevelManager.Instance.EndLevel();
-                if (UIManager.Instance != null) UIManager.Instance.ShowGameOver();
-            }
-            else
-            {
-                Debug.Log($"Player died. Lives remaining: {_playerLives}");
-                LevelManager.Instance.RespawnPlayer();
-            }
+            StartCoroutine(HandleEnemyCollision());
+        }
+    }
+
+    private System.Collections.IEnumerator HandleObstacleCollision(GameObject other)
+    {
+        // Call the levelmanager PlayDeadAnimation
+        if (LevelManager.Instance != null)
+        {
+            LevelManager.Instance.PlayDeadAnimation();
+        }
+        
+        // Wait for animation to complete (adjust time as needed)
+        yield return new WaitForSeconds(2.0f);
+        
+        _playerLives--;
+        if (_playerLives <= 0)
+        {
+            Debug.Log("Game Over");
+            _timerRunning = false;
+            IsGameRunning = false;
+            if (LevelManager.Instance != null) LevelManager.Instance.EndLevel();
+            if (UIManager.Instance != null) UIManager.Instance.ShowGameOver();
+        }
+        else
+        {
+            Debug.Log($"Player died. Lives remaining: {_playerLives}");
+            LevelManager.Instance.DestroyObstacle(other);
+            LevelManager.Instance.RespawnPlayer();
+        }
+    }
+
+    private System.Collections.IEnumerator HandleEnemyCollision()
+    {
+        Debug.Log("Player collided with an enemy, respawning...");
+        
+        // Call the levelmanager PlayDeadAnimation
+        if (LevelManager.Instance != null)
+        {
+            LevelManager.Instance.PlayDeadAnimation();
+        }
+        
+        // Wait for animation to complete (adjust time as needed)
+        yield return new WaitForSeconds(2.0f);
+        
+        _playerLives--;
+        if (_playerLives <= 0)
+        {
+            Debug.Log("Game Over");
+            _timerRunning = false;
+            IsGameRunning = false;
+            if (LevelManager.Instance != null) LevelManager.Instance.EndLevel();
+            if (UIManager.Instance != null) UIManager.Instance.ShowGameOver();
+        }
+        else
+        {
+            Debug.Log($"Player died. Lives remaining: {_playerLives}");
+            LevelManager.Instance.RespawnPlayer();
         }
     }
 

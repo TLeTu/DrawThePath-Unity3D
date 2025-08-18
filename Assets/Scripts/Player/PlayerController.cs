@@ -102,6 +102,11 @@ public class PlayerController : MonoBehaviour
     public void SpawnPlayer(Vector3 position)
     {
         // Set the player's y so that the feet are on top of the tile
+        // Set the animator trigger Dead to false
+        if (_animator != null)
+        {
+            _animator.SetBool("isDead", false);
+        }
         float tileTopY = GridManager.Instance.GetTileSize() * 0.5f;
         float playerHeight = 1f;
         var renderer = GetComponentInChildren<Renderer>();
@@ -117,17 +122,24 @@ public class PlayerController : MonoBehaviour
         gameObject.SetActive(true);
 
     }
+    public void PlayDeadAnimation()
+    {
+        if (_animator != null)
+        {
+            _animator.SetBool("isDead", true);
+        }
+    }
     // ontriggerenter if the object collides with tag "Obstacle" respawn the player
     private void OnTriggerEnter(Collider other)
     {
         Debug.Log("Player collided with an obstacle, respawning...");
-        
+
         // Play collision sound effect
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayPlayerCollisionSFX();
         }
-        
+
         //call the game manager to respawn the player
         if (GameManager.Instance != null)
         {

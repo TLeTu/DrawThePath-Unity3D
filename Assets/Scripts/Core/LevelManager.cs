@@ -175,4 +175,15 @@ public class LevelManager : MonoBehaviour
         Debug.Log($"Data: {JsonUtility.ToJson(data, true)}");
         return data;
     }
+    public void PlayDeadAnimation()
+    {
+        if (_playerController != null)
+        {
+            _playerController.PlayDeadAnimation();
+        }
+        else
+        {
+            Debug.LogError("PlayerController is not assigned in LevelManager.");
+        }
+    }
 }

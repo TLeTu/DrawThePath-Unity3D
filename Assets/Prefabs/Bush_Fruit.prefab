@@ -65,8 +65,16 @@ PrefabInstance:
       value: Bush_Fruit
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 6cf200f9cfce938579d86b779d9aa94c, type: 3}
+      propertyPath: m_Layer
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6cf200f9cfce938579d86b779d9aa94c, type: 3}
       propertyPath: m_TagString
       value: Obstacle
+      objectReference: {fileID: 0}
+    - target: {fileID: 8164078558771037576, guid: 6cf200f9cfce938579d86b779d9aa94c, type: 3}
+      propertyPath: m_Layer
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
