@@ -9,6 +9,23 @@ public class EnemyController : MonoBehaviour
     private System.Collections.Generic.List<Node> currentPath = null;
     private int pathIndex = 0;
     private float reachedThreshold = 0.05f;
+    private bool _isGameRunning = false;
+
+    private void OnEnable()
+    {
+        GameEvents.OnGameStarted += OnGameStarted;
+        GameEvents.OnEndLevel += OnEndLevel;
+    }
+
+    private void OnDisable()
+    {
+        GameEvents.OnGameStarted -= OnGameStarted;
+        GameEvents.OnEndLevel -= OnEndLevel;
+    }
+
+    private void OnGameStarted() => _isGameRunning = true;
+    private void OnEndLevel() => _isGameRunning = false;
+
 
     public void SetPosition(Vector3 firstPosition, Vector3 secondPosition)
     {
@@ -31,9 +48,9 @@ public class EnemyController : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance == null || !GameManager.Instance.IsGameRunning)
+        if (!_isGameRunning)
         {
-            return; // Ignore input if the game is not running
+            return; // Ignore movement if the game is not running
         }
 
         if (currentPath == null || currentPath.Count == 0)

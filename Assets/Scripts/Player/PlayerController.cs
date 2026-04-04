@@ -12,6 +12,7 @@ public class PlayerController : MonoBehaviour
 
     private Vector3? _moveTarget = null;
     private Queue<Vector3> _pathQueue = null;
+    private bool _isGameRunning = false;
 
     // Call this to start moving toward the target position (x and z only)
     public void MoveTowardsXZ(Vector3 targetPosition)
@@ -20,9 +21,21 @@ public class PlayerController : MonoBehaviour
         _moveTarget = new Vector3(targetPosition.x, currentPosition.y, targetPosition.z);
     }
 
+    private void OnEnable()
+    {
+        GameEvents.OnGameStarted += OnGameStarted;
+        GameEvents.OnEndLevel += OnEndLevel;
+    }
+
+    private void OnDisable()
+    {
+        GameEvents.OnGameStarted -= OnGameStarted;
+        GameEvents.OnEndLevel -= OnEndLevel;
+    }
+
     private void Update()
     {
-        if (GameManager.Instance == null || !GameManager.Instance.IsGameRunning)
+        if (!_isGameRunning)
         {
             if (_animator != null && _animator.runtimeAnimatorController != null) _animator.SetBool("isMoving", false);
             return; // Ignore input if the game is not running
@@ -135,19 +148,9 @@ public class PlayerController : MonoBehaviour
     // ontriggerenter if the object collides with tag "Obstacle" respawn the player
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("Player collided with an obstacle, respawning...");
+        Debug.Log($"Player collided with {other.name}, firing OnPlayerCollision event.");
+        GameEvents.TriggerPlayerCollision(other.gameObject);
 
-        // Play collision sound effect
-        if (AudioManager.Instance != null && (other.CompareTag("Obstacle") || other.CompareTag("Enemy")))
-        {
-            AudioManager.Instance.PlayPlayerCollisionSFX();
-        }
-
-        //call the game manager to respawn the player
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.UponPlayerCollision(other.gameObject);
-        }
         // stop the current path
         _moveTarget = null;
         _pathQueue = null;
@@ -156,6 +159,14 @@ public class PlayerController : MonoBehaviour
             _pathVisualizer.HidePath();
         }
     }
+
+    private void OnGameStarted() => _isGameRunning = true;
+    private void OnEndLevel()
+    {
+        _isGameRunning = false;
+        Destroy();
+    }
+
     public void Destroy()
     {
         _moveTarget = null;

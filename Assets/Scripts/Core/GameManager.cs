@@ -7,10 +7,6 @@ public class GameManager : MonoBehaviour
     // List of TextAssets for levels, can be populated in the inspector
     public bool IsGameRunning = false;
     [SerializeField] private TextAsset[] _levels;
-    [SerializeField] private GameObject _mainMenuUI;
-    [SerializeField] private GameObject _levelsMenuUI;
-    [SerializeField] private GameObject _gameOverUI;
-    [SerializeField] private GameObject _gameWinUI;
     private int _playerLives = 3;
     private int _currentLevelIndex = 0;
     // Removed GameState system
@@ -43,18 +39,38 @@ public class GameManager : MonoBehaviour
         // Load player progress and ensure lists are sized to number of levels
         _progress = SaveSystem.Load();
         SaveSystem.EnsureCapacity(_progress, _levels != null ? _levels.Length : 0);
+
+        // Listen to events that this manager is responsible for
+        GameEvents.OnGameOver += OnGameOver;
+        GameEvents.OnGameWin += OnGameWin;
     }
+
+    private void OnEnable()
+    {
+        GameEvents.OnStartGameRequested += NewGame;
+        GameEvents.OnPlayerCollision += UponPlayerCollision;
+        GameEvents.OnRetryLevelRequested += RetryLevel;
+        GameEvents.OnPlayNextLevelRequested += HandlePlayNextLevelRequest;
+        GameEvents.OnGoToLevelsMenuRequested += HandleGoToLevelsMenuRequest;
+    }
+
+    private void OnDisable()
+    {
+        GameEvents.OnStartGameRequested -= NewGame;
+        GameEvents.OnPlayerCollision -= UponPlayerCollision;
+        GameEvents.OnRetryLevelRequested -= RetryLevel;
+        GameEvents.OnPlayNextLevelRequested -= HandlePlayNextLevelRequest;
+        GameEvents.OnGoToLevelsMenuRequested -= HandleGoToLevelsMenuRequest;
+        
+        GameEvents.OnGameOver -= OnGameOver;
+        GameEvents.OnGameWin -= OnGameWin;
+    }
+
     private void Start()
     {
-        // Initialize the game state, load the first level, etc.
         _timer = _maxTime;
         _timerRunning = false;
-
-        // Show main menu if runtime UI exists
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.ShowMainMenu();
-        }
+        GameEvents.TriggerShowMainMenu();
     }
     private void Update()
     {
@@ -67,10 +83,8 @@ public class GameManager : MonoBehaviour
                 _timer = 0f;
                 _timerRunning = false;
                 IsGameRunning = false;
-                // Handle time out -> game over
-                Debug.Log("Time's up!");
-                if (LevelManager.Instance != null) LevelManager.Instance.EndLevel();
-                if (UIManager.Instance != null) UIManager.Instance.ShowGameOver();
+                Debug.Log("Time's up! Firing OnGameOver event.");
+                GameEvents.TriggerGameOver();
             }
         }
     }
@@ -113,6 +127,9 @@ public class GameManager : MonoBehaviour
             _currentLevelIndex = level;
         }
         _score = 0;
+
+        GameEvents.TriggerGameStarted();
+        GameEvents.TriggerShowInGameHUD();
     }
     public TextAsset GetCurrentLevel()
     {
@@ -131,24 +148,16 @@ public class GameManager : MonoBehaviour
         }
         else if (other.CompareTag("Goal"))
         {
-            // Play the level completion sound effect
-            if (AudioManager.Instance != null)
-            {
-                AudioManager.Instance.PlayLevelCompleteSFX();
-            }
             Debug.Log("Player reached the goal!");
             _timerRunning = false;
             CalculateScore();
             Debug.Log($"Score: {_score}");
 
-
             // Save progress: best score for this level and unlock next
             SaveSystem.UpdateLevelResult(_progress, _currentLevelIndex, _score, _levels != null ? _levels.Length : 0);
             SaveSystem.Save(_progress);
-
-            if (LevelManager.Instance != null) LevelManager.Instance.EndLevel();
-            if (UIManager.Instance != null) UIManager.Instance.ShowGameWin();
             IsGameRunning = false;
+            GameEvents.TriggerGameWin(_score);
         }
         else if (other.CompareTag("Enemy"))
         {
@@ -173,8 +182,7 @@ public class GameManager : MonoBehaviour
             Debug.Log("Game Over");
             _timerRunning = false;
             IsGameRunning = false;
-            if (LevelManager.Instance != null) LevelManager.Instance.EndLevel();
-            if (UIManager.Instance != null) UIManager.Instance.ShowGameOver();
+            GameEvents.TriggerGameOver();
         }
         else
         {
@@ -203,8 +211,7 @@ public class GameManager : MonoBehaviour
             Debug.Log("Game Over");
             _timerRunning = false;
             IsGameRunning = false;
-            if (LevelManager.Instance != null) LevelManager.Instance.EndLevel();
-            if (UIManager.Instance != null) UIManager.Instance.ShowGameOver();
+            GameEvents.TriggerGameOver();
         }
         else
         {
@@ -212,6 +219,21 @@ public class GameManager : MonoBehaviour
             LevelManager.Instance.RespawnPlayer();
         }
     }
+
+    private void OnGameOver()
+    {
+        IsGameRunning = false;
+        _timerRunning = false;
+        GameEvents.TriggerEndLevel();
+    }
+
+    private void OnGameWin(int score)
+    {
+        IsGameRunning = false;
+        _timerRunning = false;
+        GameEvents.TriggerEndLevel();
+    }
+
 
     private void CalculateScore()
     {
@@ -272,104 +294,21 @@ public class GameManager : MonoBehaviour
         NewGame(_currentLevelIndex);
     }
 
-    public bool TryPlayNextLevel()
+    private void HandlePlayNextLevelRequest()
     {
         int next = _currentLevelIndex + 1;
         if (next < GetLevelsCount() && IsLevelUnlocked(next))
         {
             NewGame(next);
-            return true;
         }
-        return false;
+        // If we can't play, nothing happens. The UI will remain on the win screen.
     }
 
-    public void ShowMainMenu()
+    private void HandleGoToLevelsMenuRequest()
     {
-        if (_mainMenuUI != null)
-        {
-            _mainMenuUI.SetActive(true);
-        }
-        else
-        {
-            Debug.LogWarning("Main Menu UI is not assigned in GameManager.");
-        }
-    }
-    public void HideMainMenu()
-    {
-        if (_mainMenuUI != null)
-        {
-            _mainMenuUI.SetActive(false);
-        }
-        else
-        {
-            Debug.LogWarning("Main Menu UI is not assigned in GameManager.");
-        }
-    }
-    public void ShowLevelsMenu()
-    {
-        if (_levelsMenuUI != null)
-        {
-            _levelsMenuUI.SetActive(true);
-        }
-        else
-        {
-            Debug.LogWarning("Levels Menu UI is not assigned in GameManager.");
-        }
-    }
-    public void HideLevelsMenu()
-    {
-        if (_levelsMenuUI != null)
-        {
-            _levelsMenuUI.SetActive(false);
-        }
-        else
-        {
-            Debug.LogWarning("Levels Menu UI is not assigned in GameManager.");
-        }
-    }
-    public void ShowGameOverUI()
-    {
-        if (_gameOverUI != null)
-        {
-            _gameOverUI.SetActive(true);
-        }
-        else
-        {
-            Debug.LogWarning("Game Over UI is not assigned in GameManager.");
-        }
-    }
-    public void HideGameOverUI()
-    {
-        if (_gameOverUI != null)
-        {
-            _gameOverUI.SetActive(false);
-        }
-        else
-        {
-            Debug.LogWarning("Game Over UI is not assigned in GameManager.");
-        }
-    }
-    public void ShowGameWinUI()
-    {
-        if (_gameWinUI != null)
-        {
-            _gameWinUI.SetActive(true);
-        }
-        else
-        {
-            Debug.LogWarning("Game Win UI is not assigned in GameManager.");
-        }
-    }
-    public void HideGameWinUI()
-    {
-        if (_gameWinUI != null)
-        {
-            _gameWinUI.SetActive(false);
-        }
-        else
-        {
-            Debug.LogWarning("Game Win UI is not assigned in GameManager.");
-        }
+        IsGameRunning = false;
+        GameEvents.TriggerEndLevel();
+        GameEvents.TriggerShowLevelsMenu();
     }
 
     // Auto-load all level TextAssets from Resources/Levels if not assigned in inspector

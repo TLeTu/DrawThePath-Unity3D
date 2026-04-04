@@ -37,6 +37,13 @@ public class LevelManager : MonoBehaviour
                 _enemyPool.Add(enemyObject);
             }
         }
+
+        GameEvents.OnEndLevel += EndLevel;
+    }
+
+    private void OnDestroy()
+    {
+        GameEvents.OnEndLevel -= EndLevel;
     }
     private void SpawnEnemies(List<EnemyData> enemies)
     {
@@ -122,7 +129,6 @@ public class LevelManager : MonoBehaviour
     {
         Debug.Log("Ending current level");
         // Implement level end logic here, e.g., show end screen, load next level, etc.
-        _playerController.Destroy();
         if (GridManager.Instance != null)
         {
             GridManager.Instance.DestroyGrid();

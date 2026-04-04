@@ -84,6 +84,26 @@ public class AudioManager : MonoBehaviour
         UpdateAudioSettings();
     }
 
+    private void OnEnable()
+    {
+        GameEvents.OnShowMainMenu += PlayMainMenuMusic;
+        GameEvents.OnShowLevelsMenu += PlayLevelSelectMusic;
+        GameEvents.OnGameStarted += PlayGameplayMusic;
+        GameEvents.OnGameOver += PlayGameOverMusic;
+        GameEvents.OnGameWin += PlayVictoryMusic;
+        GameEvents.OnPlayerCollision += HandlePlayerCollisionSound;
+    }
+
+    private void OnDisable()
+    {
+        GameEvents.OnShowMainMenu -= PlayMainMenuMusic;
+        GameEvents.OnShowLevelsMenu -= PlayLevelSelectMusic;
+        GameEvents.OnGameStarted -= PlayGameplayMusic;
+        GameEvents.OnGameOver -= PlayGameOverMusic;
+        GameEvents.OnGameWin -= PlayVictoryMusic;
+        GameEvents.OnPlayerCollision -= HandlePlayerCollisionSound;
+    }
+
     private void Update()
     {
         // Handle music crossfading
@@ -136,6 +156,15 @@ public class AudioManager : MonoBehaviour
         {
             PlayMusic(_victoryMusic);
         }
+        if (_levelCompleteSFX != null)
+        {
+            PlayLevelCompleteSFX();
+        }
+    }
+
+    private void PlayVictoryMusic(int score)
+    {
+        PlayVictoryMusic();
     }
 
     public void StopMusic()
@@ -250,6 +279,14 @@ public class AudioManager : MonoBehaviour
     public void PlayLevelFailSFX()
     {
         PlaySFX(_levelFailSFX);
+    }
+
+    private void HandlePlayerCollisionSound(GameObject other)
+    {
+        if (other != null && (other.CompareTag("Obstacle") || other.CompareTag("Enemy")))
+        {
+            PlayPlayerCollisionSFX();
+        }
     }
 
     public void PlaySFX(AudioClip clip)

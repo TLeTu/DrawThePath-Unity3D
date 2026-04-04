@@ -39,7 +39,25 @@ public class UIManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        ShowMainMenu();
+        GameEvents.TriggerShowMainMenu();
+    }
+
+    private void OnEnable()
+    {
+        GameEvents.OnShowMainMenu += ShowMainMenu;
+        GameEvents.OnShowLevelsMenu += ShowLevelsMenu;
+        GameEvents.OnGameOver += ShowGameOver;
+        GameEvents.OnGameWin += ShowGameWin;
+        GameEvents.OnShowInGameHUD += ShowInGameHUD;
+    }
+
+    private void OnDisable()
+    {
+        GameEvents.OnShowMainMenu -= ShowMainMenu;
+        GameEvents.OnShowLevelsMenu -= ShowLevelsMenu;
+        GameEvents.OnGameOver -= ShowGameOver;
+        GameEvents.OnGameWin -= ShowGameWin;
+        GameEvents.OnShowInGameHUD -= ShowInGameHUD;
     }
 
     private void Update()
@@ -86,38 +104,23 @@ public class UIManager : MonoBehaviour
     public void ShowMainMenu()
     {
         ShowOnly(_mainMenuPanel);
-        // Play main menu music
-        if (AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlayMainMenuMusic();
-        }
     }
 
     public void ShowLevelsMenu()
     {
         RebuildLevelsGrid();
         ShowOnly(_levelsPanel);
-        // Play level select music (or main menu music if level select music is not set)
-        if (AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlayLevelSelectMusic();
-        }
     }
 
     public void ShowGameOver()
     {
         if (_gameOverScoreText) _gameOverScoreText.text = $"Score: {GameManager.Instance.GetScore()}";
         ShowOnly(_gameOverPanel);
-        // Play game over music
-        if (AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlayGameOverMusic();
-        }
     }
 
-    public void ShowGameWin()
+    public void ShowGameWin(int score)
     {
-        if (_gameWinScoreText) _gameWinScoreText.text = $"Score: {GameManager.Instance.GetScore()}";
+        if (_gameWinScoreText) _gameWinScoreText.text = $"Score: {score}";
         if (_nextLevelButton)
         {
             int next = GameManager.Instance.GetCurrentLevelIndex() + 1;
@@ -125,21 +128,11 @@ public class UIManager : MonoBehaviour
             _nextLevelButton.interactable = canPlayNext;
         }
         ShowOnly(_gameWinPanel);
-        // Play victory music
-        if (AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlayVictoryMusic();
-        }
     }
 
     public void ShowInGameHUD()
     {
         ShowOnly(_inGameHUD);
-        // Play gameplay music
-        if (AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlayGameplayMusic();
-        }
     }
 
     private void RebuildLevelsGrid()
@@ -194,11 +187,7 @@ public class UIManager : MonoBehaviour
                 btn.onClick.RemoveAllListeners();
                 btn.onClick.AddListener(() =>
                 {
-                    if (GameManager.Instance.IsLevelUnlocked(levelIndex))
-                    {
-                        GameManager.Instance.NewGame(levelIndex);
-                        ShowInGameHUD();
-                    }
+                    GameEvents.TriggerStartGameRequested(levelIndex);
                 });
                 _levelButtons.Add(btn);
             }
@@ -211,22 +200,16 @@ public class UIManager : MonoBehaviour
 
     public void RetryLevel()
     {
-        GameManager.Instance.RetryLevel();
-        ShowInGameHUD();
+        GameEvents.TriggerRetryLevelRequested();
     }
 
     public void PlayNextLevel()
     {
-        if (GameManager.Instance.TryPlayNextLevel())
-        {
-            ShowInGameHUD();
-        }
+        GameEvents.TriggerPlayNextLevelRequested();
     }
 
     public void GoToLevelsMenuFromGame()
     {
-        if (LevelManager.Instance != null) LevelManager.Instance.EndLevel();
-        if (GameManager.Instance != null) GameManager.Instance.IsGameRunning = false;
-        ShowLevelsMenu();
+        GameEvents.TriggerGoToLevelsMenuRequested();
     }
 }
