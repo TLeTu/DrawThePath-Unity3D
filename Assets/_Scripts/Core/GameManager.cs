@@ -15,7 +15,10 @@ public class GameManager : MonoBehaviour
     private PlayerProgress _progress;
 
     // Timer and scoring system
+    [Header("Scoring")]
     [SerializeField] private float _maxTime = 120f; // seconds
+    [Range(0, 1)] [SerializeField] private float _3StarThreshold = 0.8f; // 80%
+    [Range(0, 1)] [SerializeField] private float _2StarThreshold = 0.5f; // 50%
     private float _timer;
     private bool _timerRunning = false;
     private int _score = 0;
@@ -153,11 +156,13 @@ public class GameManager : MonoBehaviour
             CalculateScore();
             Debug.Log($"Score: {_score}");
 
+            int earnedStars = CalculateStars(_score);
+
             // Save progress: best score for this level and unlock next
-            SaveSystem.UpdateLevelResult(_progress, _currentLevelIndex, _score, _levels != null ? _levels.Length : 0);
+            SaveSystem.UpdateLevelResult(_progress, _currentLevelIndex, _score, earnedStars, _levels != null ? _levels.Length : 0);
             SaveSystem.Save(_progress);
             IsGameRunning = false;
-            GameEvents.TriggerGameWin(_score);
+            GameEvents.TriggerGameWin(_score, earnedStars);
         }
         else if (other.CompareTag("Enemy"))
         {
@@ -227,7 +232,7 @@ public class GameManager : MonoBehaviour
         GameEvents.TriggerEndLevel();
     }
 
-    private void OnGameWin(int score)
+    private void OnGameWin(int score, int stars)
     {
         IsGameRunning = false;
         _timerRunning = false;
@@ -256,6 +261,22 @@ public class GameManager : MonoBehaviour
         return _maxTime;
     }
 
+    public int CalculateStars(int score)
+    {
+        if (score <= 0) return 0;
+
+        float maxScore = _maxTime * 10;
+        if (score >= maxScore * _3StarThreshold)
+        {
+            return 3;
+        }
+        if (score >= maxScore * _2StarThreshold)
+        {
+            return 2;
+        }
+        return 1;
+    }
+
     // --- Progress helpers ---
     public bool IsLevelUnlocked(int levelIndex)
     {
@@ -274,9 +295,23 @@ public class GameManager : MonoBehaviour
         return _progress.bestScores[levelIndex];
     }
 
+    public int GetBestStars(int levelIndex)
+    {
+        if (_levels == null) return 0;
+        if (_progress == null) return 0;
+        SaveSystem.EnsureCapacity(_progress, _levels.Length);
+        if (levelIndex < 0 || levelIndex >= _progress.stars.Count) return 0;
+        return _progress.stars[levelIndex];
+    }
+
     public int GetHighestUnlockedLevel()
     {
         return _progress != null ? _progress.highestUnlockedLevel : 0;
+    }
+
+    public int GetTotalCollectedStars()
+    {
+        return SaveSystem.GetTotalStars(_progress);
     }
 
     public void ResetProgress()

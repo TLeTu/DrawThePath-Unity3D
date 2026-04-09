@@ -7,6 +7,7 @@ public class PlayerProgress
 {
     public int highestUnlockedLevel = 0; // Index of the highest unlocked level (0-based)
     public List<int> bestScores = new List<int>(); // Best score for each level by index
+    public List<int> stars = new List<int>(); // Stars earned for each level (0-3)
 }
 
 public static class SaveSystem
@@ -59,6 +60,10 @@ public static class SaveSystem
         {
             data.bestScores.Add(0);
         }
+        while (data.stars.Count < totalLevels)
+        {
+            data.stars.Add(0);
+        }
         // Clamp highestUnlockedLevel into valid range [0, totalLevels-1] when there are levels
         if (totalLevels > 0)
         {
@@ -71,7 +76,7 @@ public static class SaveSystem
         }
     }
 
-    public static void UpdateLevelResult(PlayerProgress data, int levelIndex, int score, int totalLevels)
+    public static void UpdateLevelResult(PlayerProgress data, int levelIndex, int score, int starsEarned, int totalLevels)
     {
         if (data == null) return;
         EnsureCapacity(data, totalLevels);
@@ -86,6 +91,15 @@ public static class SaveSystem
             }
         }
 
+        // Update stars for this level
+        if (levelIndex < data.stars.Count)
+        {
+            if (starsEarned > data.stars[levelIndex])
+            {
+                data.stars[levelIndex] = starsEarned;
+            }
+        }
+
         // Unlock next level (linear progression)
         int nextLevel = levelIndex + 1;
         if (totalLevels > 0)
@@ -96,6 +110,18 @@ public static class SaveSystem
                 data.highestUnlockedLevel = Mathf.Min(nextLevel, maxIndex);
             }
         }
+    }
+
+    public static int GetTotalStars(PlayerProgress data)
+    {
+        if (data == null || data.stars == null) return 0;
+        
+        int totalStars = 0;
+        foreach (int star in data.stars)
+        {
+            totalStars += star;
+        }
+        return totalStars;
     }
 
     public static void ResetAll()

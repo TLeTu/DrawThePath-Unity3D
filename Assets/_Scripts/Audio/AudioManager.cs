@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class AudioManager : MonoBehaviour
@@ -29,6 +30,8 @@ public class AudioManager : MonoBehaviour
     [SerializeField] [Range(0f, 1f)] private float _sfxVolume = 0.8f;
     [SerializeField] private bool _muteMusic = false;
     [SerializeField] private bool _muteSFX = false;
+    
+    public bool _audioEnabled = true; // Global toggle for all audio, can be used for a master mute or platform-specific audio control
 
     private AudioClip _currentlyPlayingMusic;
     private float _fadeSpeed = 2f;
@@ -162,7 +165,7 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    private void PlayVictoryMusic(int score)
+    private void PlayVictoryMusic(int score, int stars)
     {
         PlayVictoryMusic();
     }
@@ -326,6 +329,7 @@ public class AudioManager : MonoBehaviour
         {
             _musicSource.mute = mute;
         }
+        Console.WriteLine($"Music mute set to: {mute}");
     }
 
     public void SetSFXMute(bool mute)
@@ -335,6 +339,7 @@ public class AudioManager : MonoBehaviour
         {
             _sfxSource.mute = mute;
         }
+        Console.WriteLine($"SFX mute set to: {mute}");
     }
 
     public void ToggleMusicMute()
@@ -345,6 +350,16 @@ public class AudioManager : MonoBehaviour
     public void ToggleSFXMute()
     {
         SetSFXMute(!_muteSFX);
+    }
+
+    public void ToggleAllAudio(bool isAudioOn)
+    {
+        _audioEnabled = isAudioOn;
+        SetMusicMute(!isAudioOn);
+        SetSFXMute(!isAudioOn);
+        
+        // Notify all listeners that audio was toggled
+        GameEvents.TriggerAudioToggled(isAudioOn);
     }
 
     private void UpdateAudioSettings()

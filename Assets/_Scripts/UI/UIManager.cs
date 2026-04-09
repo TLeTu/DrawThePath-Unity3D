@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using System.Reflection;
+using Unity.VisualScripting;
 
 public class UIManager : MonoBehaviour
 {
@@ -16,8 +18,10 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject _inGameHUD;
 
     [Header("Game Over/Win UI")]
-    [SerializeField] private TextMeshProUGUI _gameOverScoreText;
     [SerializeField] private TextMeshProUGUI _gameWinScoreText;
+    [SerializeField] private GameObject _gameWinOneStar;
+    [SerializeField] private GameObject _gameWinTwoStar;
+    [SerializeField] private GameObject _gameWinThreeStar;
     [SerializeField] private Button _nextLevelButton;
 
     [Header("In-Game HUD")]
@@ -26,6 +30,17 @@ public class UIManager : MonoBehaviour
     [Header("Levels Menu")]
     [SerializeField] private RectTransform _levelGridContent;
     [SerializeField] private GameObject _levelButtonPrefab;
+    [SerializeField] private TextMeshProUGUI _totalStarsText;
+    // Stars sprites (1/3, 2/3, 3/3)
+    [SerializeField] private Sprite _star1;
+    [SerializeField] private Sprite _star2;
+    [SerializeField] private Sprite _star3;
+    // Locked and Unlocked level sprites
+    [SerializeField] private Sprite _lockedLevel;
+    [SerializeField] private Sprite _unlockedLevel;
+
+
+
 
     private readonly List<Button> _levelButtons = new();
 
@@ -108,19 +123,46 @@ public class UIManager : MonoBehaviour
 
     public void ShowLevelsMenu()
     {
+        int totalLevels = GameManager.Instance.GetLevelsCount();
+        int totalCollectedStars = GameManager.Instance.GetTotalCollectedStars();
+        _totalStarsText.text = $"{totalCollectedStars} / {totalLevels * 3}";
         RebuildLevelsGrid();
         ShowOnly(_levelsPanel);
     }
 
     public void ShowGameOver()
     {
-        if (_gameOverScoreText) _gameOverScoreText.text = $"Score: {GameManager.Instance.GetScore()}";
         ShowOnly(_gameOverPanel);
     }
 
-    public void ShowGameWin(int score)
+    public void ShowGameWin(int score, int stars)
     {
-        if (_gameWinScoreText) _gameWinScoreText.text = $"Score: {score}";
+        if (_gameWinScoreText) _gameWinScoreText.text = $"Score - {score}";
+        if (stars == 1)
+        {
+            // Enable the _gameWinOneStar gameobject
+            if (_gameWinOneStar) _gameWinOneStar.SetActive(true);
+            if (_gameWinTwoStar) _gameWinTwoStar.SetActive(false);
+            if (_gameWinThreeStar) _gameWinThreeStar.SetActive(false);
+        }
+        else if (stars == 2)
+        {
+            if (_gameWinOneStar) _gameWinOneStar.SetActive(true);
+            if (_gameWinTwoStar) _gameWinTwoStar.SetActive(true);
+            if (_gameWinThreeStar) _gameWinThreeStar.SetActive(false);
+        }
+        else if (stars == 3)
+        {
+            if (_gameWinOneStar) _gameWinOneStar.SetActive(true);
+            if (_gameWinTwoStar) _gameWinTwoStar.SetActive(true);
+            if (_gameWinThreeStar) _gameWinThreeStar.SetActive(true);
+        }
+        else
+        {
+            if (_gameWinOneStar) _gameWinOneStar.SetActive(false);
+            if (_gameWinTwoStar) _gameWinTwoStar.SetActive(false);
+            if (_gameWinThreeStar) _gameWinThreeStar.SetActive(false);
+        }
         if (_nextLevelButton)
         {
             int next = GameManager.Instance.GetCurrentLevelIndex() + 1;
@@ -155,34 +197,46 @@ public class UIManager : MonoBehaviour
             
             bool unlocked = GameManager.Instance.IsLevelUnlocked(levelIndex);
             int best = GameManager.Instance.GetBestScore(levelIndex);
+            int stars = GameManager.Instance.GetBestStars(levelIndex);
 
             // Find components in the prefab instance
+            // var title = item.transform.Find("TitleText")?.GetComponent<TextMeshProUGUI>();
+            // var bestText = item.transform.Find("BestScoreText")?.GetComponent<TextMeshProUGUI>();
+            // var btn = item.transform.Find("PlayButton")?.GetComponent<Button>();
+            // var btnText = btn?.transform.Find("Text")?.GetComponent<TextMeshProUGUI>();
+            // var bg = item.GetComponent<Image>();
+            // var outline = item.GetComponent<Outline>();
             var title = item.transform.Find("TitleText")?.GetComponent<TextMeshProUGUI>();
-            var bestText = item.transform.Find("BestScoreText")?.GetComponent<TextMeshProUGUI>();
-            var btn = item.transform.Find("PlayButton")?.GetComponent<Button>();
-            var btnText = btn?.transform.Find("Text")?.GetComponent<TextMeshProUGUI>();
-            var bg = item.GetComponent<Image>();
-            var outline = item.GetComponent<Outline>();
-
+            var itemStars = item.transform.Find("Stars")?.GetComponent<Image>();
+            var btn = item.GetComponent<Button>();            
+            
+            item.GetComponent<Image>().sprite = unlocked ? _unlockedLevel : _lockedLevel;
             if (title)
             {
-                title.text = $"Level {levelIndex + 1}";
-                title.color = unlocked ? new Color(0.9f, 0.95f, 1f, 1f) : new Color(0.7f, 0.7f, 0.7f, 0.8f);
+                title.enabled = unlocked;
+                title.text = $"{levelIndex + 1}";
             }
 
-            if (bestText)
+            if (itemStars)
             {
-                bestText.text = best > 0 ? $"Best: {best}" : "Not completed";
-                bestText.color = unlocked ? new Color(0.7f, 0.9f, 0.7f, 0.9f) : new Color(0.6f, 0.6f, 0.6f, 0.7f);
+                itemStars.enabled = unlocked;
+                if (stars == 3)
+                {
+                    itemStars.sprite = _star3;
+                }
+                else if (stars == 2)
+                {
+                    itemStars.sprite = _star2;
+                }
+                else if (stars == 1)
+                {
+                    itemStars.sprite = _star1;
+                }
+                else itemStars.enabled = false;
             }
-
-            if (bg) bg.color = unlocked ? new Color(0.12f, 0.18f, 0.25f, 0.95f) : new Color(0.15f, 0.1f, 0.1f, 0.9f);
-            if (outline) outline.effectColor = unlocked ? new Color(0.3f, 0.5f, 0.8f, 0.8f) : new Color(0.5f, 0.2f, 0.2f, 0.6f);
 
             if (btn)
-            {
-                if (btnText) btnText.text = unlocked ? "Play" : "Locked";
-                
+            {                
                 btn.interactable = unlocked;
                 btn.onClick.RemoveAllListeners();
                 btn.onClick.AddListener(() =>

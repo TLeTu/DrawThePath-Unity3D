@@ -13,8 +13,8 @@ public static class GameEvents
     public static void TriggerGameStarted() => OnGameStarted?.Invoke();
 
     // Fired by GameManager when the player wins the level
-    public static event Action<int> OnGameWin; // int: score
-    public static void TriggerGameWin(int score) => OnGameWin?.Invoke(score);
+    public static event Action<int, int> OnGameWin; // int: score
+    public static void TriggerGameWin(int score, int stars) => OnGameWin?.Invoke(score, stars);
 
     // Fired by GameManager when the player runs out of lives or time
     public static event Action OnGameOver;
@@ -51,4 +51,9 @@ public static class GameEvents
 
     public static event Action OnShowInGameHUD;
     public static void TriggerShowInGameHUD() => OnShowInGameHUD?.Invoke();
+
+    // --- Audio Events ---
+    // Fired when audio is toggled on/off
+    public static event Action<bool> OnAudioToggled;
+    public static void TriggerAudioToggled(bool isAudioOn) => OnAudioToggled?.Invoke(isAudioOn);
 }
