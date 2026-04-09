@@ -5003,17 +5003,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   IsGameRunning: 0
-  _levels:
-  - {fileID: 4900000, guid: d91b75c7be4c1d4538302bff5ff83de2, type: 3}
-  - {fileID: 4900000, guid: b6f831f4bbfc3115c97492d2a9aef471, type: 3}
-  - {fileID: 4900000, guid: fc754f4cdf6355b0ca1832c680da0540, type: 3}
-  - {fileID: 4900000, guid: 268cc726e08fc30c48b2660bd28efd13, type: 3}
-  - {fileID: 4900000, guid: ca90465b68b6fb29e9a460313d6565dd, type: 3}
-  - {fileID: 4900000, guid: cbd0ae84c7cb06124b457100bea789f6, type: 3}
-  - {fileID: 4900000, guid: 94d1707798cc0a35db28aa9e102f9454, type: 3}
-  - {fileID: 4900000, guid: 4b24bea04e30a7f5c9fda72e820e9a8e, type: 3}
-  - {fileID: 4900000, guid: b61e708bca0bde732bf0f5301170054a, type: 3}
-  - {fileID: 4900000, guid: be809cfe56f75e5318cc42a57dc4a38e, type: 3}
+  _levels: []
   _maxTime: 50
   _3StarThreshold: 0.8
   _2StarThreshold: 0.5

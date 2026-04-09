@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 public class GameManager : MonoBehaviour
 {
@@ -352,7 +354,19 @@ public class GameManager : MonoBehaviour
         if (_levels == null || _levels.Length == 0)
         {
             var loaded = Resources.LoadAll<TextAsset>("Levels");
-            _levels = loaded ?? new TextAsset[0];
+            if (loaded != null && loaded.Length > 0)
+            {
+                // Sort the levels numerically based on the number in their name
+                _levels = loaded.OrderBy(asset => 
+                {
+                    Match match = Regex.Match(asset.name, @"\d+");
+                    return match.Success ? int.Parse(match.Value) : 0;
+                }).ToArray();
+            }
+            else
+            {
+                _levels = new TextAsset[0];
+            }
             Debug.Log($"[GameManager] Auto-loaded {_levels.Length} level(s) from Resources/Levels");
         }
     }

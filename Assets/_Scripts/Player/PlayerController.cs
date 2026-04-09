@@ -13,6 +13,16 @@ public class PlayerController : MonoBehaviour
     private Vector3? _moveTarget = null;
     private Queue<Vector3> _pathQueue = null;
     private bool _isGameRunning = false;
+    private Collider playerCollider = null;
+
+    private void Awake()
+    {
+        playerCollider = GetComponent<Collider>();
+        if (playerCollider == null)
+        {
+            Debug.LogError("PlayerController requires a Collider component for collision detection.");
+        }
+    }
 
     // Call this to start moving toward the target position (x and z only)
     public void MoveTowardsXZ(Vector3 targetPosition)
@@ -135,7 +145,11 @@ public class PlayerController : MonoBehaviour
         _moveTarget = null;
         _pathQueue = null;
         gameObject.SetActive(true);
-
+        // Turn the collider back on for the player
+        if (playerCollider != null)
+        {
+            playerCollider.enabled = true;     
+        }
     }
     public void PlayDeadAnimation()
     {
@@ -149,6 +163,12 @@ public class PlayerController : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         Debug.Log($"Player collided with {other.name}, firing OnPlayerCollision event.");
+        // Disable the player collider to prevent multiple triggers while processing death
+        
+        if (playerCollider != null)
+        {
+            playerCollider.enabled = false;
+        }
         GameEvents.TriggerPlayerCollision(other.gameObject);
 
         // stop the current path
