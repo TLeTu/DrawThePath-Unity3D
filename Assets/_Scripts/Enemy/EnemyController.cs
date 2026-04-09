@@ -32,6 +32,10 @@ public class EnemyController : MonoBehaviour
         this.transform.position = firstPosition;
         this.firstPosition = firstPosition;
         this.secondPosition = secondPosition;
+        
+        // FIX: Reset the movement state every time the enemy is pulled from the pool
+        this.movingToSecond = true; 
+        
         SetPathTo(secondPosition);
     }
     public void RemovePath()
