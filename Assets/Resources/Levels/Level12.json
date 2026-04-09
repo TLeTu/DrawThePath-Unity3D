@@ -174,15 +174,15 @@
     "endTileY": 5,
     "enemies": [
         {
-            "startX": 2,
-            "startY": 10,
-            "endX": 9,
-            "endY": 10
-        },
-        {
             "startX": 8,
             "startY": 4,
             "endX": 8,
+            "endY": 10
+        },
+        {
+            "startX": 2,
+            "startY": 10,
+            "endX": 9,
             "endY": 10
         }
     ]

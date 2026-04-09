@@ -44,10 +44,10 @@
                 1,
                 1,
                 1,
-                0,
-                0,
-                0,
-                0
+                1,
+                1,
+                1,
+                1
             ]
         },
         {
@@ -105,10 +105,10 @@
     "endTileY": 2,
     "enemies": [
         {
-            "startX": 3,
-            "startY": 0,
-            "endX": 3,
-            "endY": 3
+            "startX": 2,
+            "startY": 2,
+            "endX": 5,
+            "endY": 2
         }
     ]
 }

@@ -22,14 +22,17 @@ class LevelConfig:
             self.path_width = 2
             self.open_areas = 2
             self.shortcuts = 0  
+            self.dead_ends = 1  # Add 1 little branch
         elif self.curve < 0.7:  # Medium
             self.path_width = 1
             self.open_areas = 1
             self.shortcuts = 2  
+            self.dead_ends = 3  # Add a few confusing dead ends
         else:                   # Hard
             self.path_width = 1
             self.open_areas = 0 
             self.shortcuts = 0  
+            self.dead_ends = 0  # Linear, brutal path
         
         # Enemies
         self.enemy_count = int(1 + (self.curve * 5))
@@ -67,6 +70,7 @@ class LevelGenerator:
         self._thicken_path()
         self._add_open_areas()
         self._add_shortcuts()
+        self._add_dead_ends()
         self._place_enemies()
         return self._export_json()
 
@@ -162,6 +166,31 @@ class LevelGenerator:
                     curr_r += 1 if target_r > curr_r else -1
                 
                 self.grid[curr_r][curr_c] = 1
+    
+    def _add_dead_ends(self):
+        if self.config.dead_ends <= 0 or len(self.path_nodes) < 10: return
+        
+        for _ in range(self.config.dead_ends):
+            # Pick a random starting point on the main path
+            start_idx = random.randint(3, len(self.path_nodes) - 3)
+            r, c = self.path_nodes[start_idx]
+            
+            # Decide how long the dead end branch will be (3 to 6 tiles long)
+            branch_length = random.randint(3, 6)
+            
+            # Pick a random direction to start digging
+            dr, dc = random.choice([(-1, 0), (1, 0), (0, -1), (0, 1)])
+            
+            for _ in range(branch_length):
+                r += dr
+                c += dc
+                # Keep it within the map boundaries
+                if 0 <= r < self.config.height and 0 <= c < self.config.width:
+                    self.grid[r][c] = 1
+                    
+                    # 30% chance the branch changes direction to make it snake around
+                    if random.random() < 0.3:
+                        dr, dc = random.choice([(-1, 0), (1, 0), (0, -1), (0, 1)])
 
     def _place_enemies(self):
         if len(self.path_nodes) < 6: return

@@ -201,15 +201,15 @@
     "endTileY": 8,
     "enemies": [
         {
-            "startX": 2,
-            "startY": 10,
-            "endX": 11,
-            "endY": 10
+            "startX": 3,
+            "startY": 9,
+            "endX": 3,
+            "endY": 11
         },
         {
-            "startX": 6,
-            "startY": 9,
-            "endX": 6,
+            "startX": 8,
+            "startY": 8,
+            "endX": 8,
             "endY": 11
         }
     ]
