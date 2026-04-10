@@ -2,6 +2,7 @@ import json
 import random
 import heapq
 import argparse
+import os
 
 class LevelConfig:
     def __init__(self, level_number, seed, max_size=16):
@@ -181,7 +182,6 @@ class LevelGenerator:
         used_patrol_tiles = set()
         enemies_placed = 0
         
-        # INCREASED to 5: Enemies are now mathematically forced to take LONG patrols
         MIN_PATROL_LENGTH = 5 
         
         for r, c in candidate_spots:
@@ -206,14 +206,29 @@ class LevelGenerator:
                 down_r += 1
             vert_len = down_r - up_r + 1
 
+            # If horizontal patrol is long enough
             if horiz_len >= MIN_PATROL_LENGTH and horiz_len >= vert_len:
+                # Carve the Dodge Lane: Pick the row above or below to widen the tunnel
+                dr = 1 if r < self.config.height - 2 else -1
                 for i in range(left_c, right_c + 1): 
                     used_patrol_tiles.add((r, i))
+                    # Blow out the wall to create a safe passing lane
+                    self.grid[r + dr][i] = 1
+                    used_patrol_tiles.add((r + dr, i))
+                
                 self.enemies.append({"startX": r, "startY": left_c, "endX": r, "endY": right_c})
                 enemies_placed += 1
+            
+            # If vertical patrol is long enough
             elif vert_len >= MIN_PATROL_LENGTH and vert_len > horiz_len:
+                # Carve the Dodge Lane: Pick the column left or right to widen the tunnel
+                dc = 1 if c < self.config.width - 2 else -1
                 for i in range(up_r, down_r + 1): 
                     used_patrol_tiles.add((i, c))
+                    # Blow out the wall to create a safe passing lane
+                    self.grid[i][c + dc] = 1
+                    used_patrol_tiles.add((i, c + dc))
+                
                 self.enemies.append({"startX": up_r, "startY": c, "endX": down_r, "endY": c})
                 enemies_placed += 1
 
@@ -240,25 +255,31 @@ def main():
     
     args = parser.parse_args()
 
+    # --- FOLDER CREATION LOGIC ---
+    output_dir = "Levels"
+    os.makedirs(output_dir, exist_ok=True)
+
     if args.batch:
-        print(f"Batch generating levels {args.start} to {args.end}...")
+        print(f"Batch generating levels {args.start} to {args.end} into '{output_dir}/' folder...")
         for i in range(args.start, args.end + 1):
             config = LevelConfig(i, args.seed)
             generator = LevelGenerator(config)
             json_output = generator.generate()
             filename = f"Level{i}.json"
-            with open(filename, "w") as f:
+            filepath = os.path.join(output_dir, filename)
+            with open(filepath, "w") as f:
                 f.write(json_output)
         print(f"Success! Generated {args.end - args.start + 1} levels.")
     else:
-        print(f"Generating Level {args.level}...")
+        print(f"Generating Level {args.level} into '{output_dir}/' folder...")
         config = LevelConfig(args.level, args.seed)
         generator = LevelGenerator(config)
         json_output = generator.generate()
         filename = f"Level{args.level}.json"
-        with open(filename, "w") as f:
+        filepath = os.path.join(output_dir, filename)
+        with open(filepath, "w") as f:
             f.write(json_output)
-        print(f"Success! Saved to {filename}")
+        print(f"Success! Saved to {filepath}")
         print(f"Grid: {config.width}x{config.height} | Enemies: {len(generator.enemies)}")
 
 if __name__ == "__main__":

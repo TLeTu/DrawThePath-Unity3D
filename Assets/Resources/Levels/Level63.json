@@ -339,18 +339,6 @@
             "startY": 3,
             "endX": 8,
             "endY": 3
-        },
-        {
-            "startX": 3,
-            "startY": 4,
-            "endX": 10,
-            "endY": 4
-        },
-        {
-            "startX": 3,
-            "startY": 6,
-            "endX": 10,
-            "endY": 6
         }
     ]
 }

@@ -181,9 +181,9 @@
         },
         {
             "startX": 1,
-            "startY": 5,
-            "endX": 9,
-            "endY": 5
+            "startY": 3,
+            "endX": 6,
+            "endY": 3
         }
     ]
 }
