@@ -118,9 +118,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ad52ff053e2435b5ad6866f45986a80, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _pathColor: {r: 0.015686274, g: 1, b: 0.91258925, a: 1}
+  _pathColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   _lineWidth: 1
   _yOffset: 1.5
+  _groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!143 &5519288823035945662
 CharacterController:
   m_ObjectHideFlags: 0
